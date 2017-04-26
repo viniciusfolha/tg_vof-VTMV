@@ -4,23 +4,26 @@
 		<meta charset="UTF-8"/>
 		<title>VTMV - Visualizacao de Trajetorias Multidimensionais</title>
 
-	    <link 
-	        rel="stylesheet" 
-	        href="library/leaflet/leaflet.css"
-	    />
+	    <link rel="stylesheet" href="library/leaflet/leaflet.css"/>
+	    <link rel="stylesheet" href="css/chart.css" >
 
 	    <script src="library/d3/d3.min.js"></script>
 
-	    <script
-	        src="library/leaflet/leaflet.js">
-	    </script>
+	    <script src="library/leaflet/leaflet.js"></script>
 	    
+
+
 	</head>
 	<body>
 
-		<div id="map" style="width: 600px; height: 400px"></div>
+		<div id="map" style="width: 600px; height: 400px">
 			<script src="js/mapData.js"></script>
-
+		</div>
+			
+		<div id = "chart" style="width: 900px; height: 600px" >
+			<script src="js/chart.js"></script>	
+		</div>
+		
 	</body>
 </html>
 
