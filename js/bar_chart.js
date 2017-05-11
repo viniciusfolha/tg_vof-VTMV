@@ -53,7 +53,7 @@ class BarChart{
     this.data = data;
     //
 
-    var dataXExtent = d3.extent(this.data.map(function(d){return d[0]}));
+    //var dataXExtent = d3.extent(this.data.map(function(d){return d[0]}));
    
     this.xScale.domain(this.data.map(function(d){return d[0]}));
     this.xAxis = d3.axisBottom(this.xScale).ticks(10);
@@ -70,7 +70,7 @@ class BarChart{
 
     var myBars =
       this.canvas
-        .selectAll("rect")
+        .selectAll(".bar")
         .data(this.data);
     
     myBars

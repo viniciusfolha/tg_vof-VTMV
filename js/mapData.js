@@ -22,7 +22,6 @@ var g = svg.append("g");
 
 
 
-
 d3.json("data/RIO_BRT_GPS_T.json", function(error, data) {
 	if (error) return console.warn(error);
 
@@ -69,13 +68,15 @@ d3.json("data/RIO_BRT_GPS_T.json", function(error, data) {
 	            linhas_L[i] + (linhas_L[i+1] ? '<br>' : '');
 	    }
 
+
 	    return div;
 	};
 
 	legend.addTo(map);
 
 
-	//BAR_CHART
+//BAR_CHART
+
 	var mySVG =
     d3.select("body")
     	.append("svg")
@@ -93,15 +94,20 @@ d3.json("data/RIO_BRT_GPS_T.json", function(error, data) {
 	bar_chart.setData(dados_chart);
 
 
+//LINE_CHART
+
+	var line_chart = new LineChart("linechart1",mySVG,600,100,400,300);
+	dados_line1 = data.veiculos.map(function(d){ return d.datahora });
+	var dados_line = dados_line1.map(function (e, i) {
+    				return {datahora : e, velocidade: dados_chart1[i]};
+				});
+	line_chart.setData(dados_line);
 
 
 
 
+// CIRCLE
 
-
-
-
-	// CIRCLE
 	data.veiculos.forEach(function(d) {
 			
 			d.LatLng = new L.LatLng(d.latitude,
