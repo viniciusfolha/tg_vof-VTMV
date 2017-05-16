@@ -25,6 +25,7 @@
 
 .bar { fill: steelblue; }
 
-.line_chart {fill: steelblue;}
+.line_chart {fill: none;
+stroke: steelblue;}
 
 

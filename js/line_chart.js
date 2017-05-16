@@ -37,20 +37,12 @@ class LineChart{
 
 
 	   	this.toline = d3.line()
-	   		.x(function(d) { return this.xScale(d.datahora); })
+	   		.x(function(d) { console.log(d); return this.xScale(d.datahora); })
 		    .y(function(d) {  return this.yScale(d.velocidade); });
 
 
 
-	    /*
-	    var that = this;
-	    this.brush = d3.brush();
-	    this.brushGroup = this.canvas.append("g").attr("class","brush");
-	    this.brush(this.brushGroup);
-	    this.brush.on("start",function(){that.brushStarted(that)});
-	    this.brush.on("brush",function(){that.brushMoved(that)});
-	    this.brush.on("end",function(){that.brushEnded(that)});
-	  */
+
 
 	}
 
@@ -70,7 +62,15 @@ class LineChart{
 
 	    var dataYExtent = d3.extent(data, function(d) { return d.velocidade;});
 	    this.yScale.domain(dataYExtent);
+	    //this.yScale.domain([0, d3.max(data, function(d) { return d.velocidade; })]);
 	 	console.log(dataYExtent);
+
+	 	var xScale = this.xScale;
+	 	var yScale = this.yScale;
+	 	this.toline = d3.line()
+	   		.x(function(d) { console.log(d); return xScale(d.datahora); })
+		    .y(function(d) {  return yScale(d.velocidade); });
+
 
 	    this.update();
 
@@ -83,7 +83,7 @@ class LineChart{
 	    var myLines =
 	      this.canvas
 	        .selectAll(".line_chart")
-	        .data(this.data);
+	        .data([this.data]);
 	    
 	    myLines
 	      .exit()
@@ -111,7 +111,7 @@ class LineChart{
 	      .append("path")
 	      .merge(myLines)
 	      .attr("class", "line_chart")
-	      .attr("d", this.toline  )
+	      .attr("d", this.toline)
 	    
 
 	    this.xAxisGroup

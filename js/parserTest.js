@@ -43,8 +43,8 @@ var jsontext = '[ \
     ]\
   }\
 ]';
-console.log(jsontext)
-var teste  = JSON.parse(jsontext, parseTest);
+//console.log(jsontext)
+
 var data = [];
 var objeto = {};
 var id ;
@@ -52,15 +52,40 @@ var idName;
 var trajetorias = [];
 var single_traj = {};
 var campNames = [];
-
+var endTraj = false;
+var teste  = JSON.parse(jsontext, parseTest);
+var endCampName = false;
+//console.log(campNames);
 function parseTest(key, value) {
+	//console.log(key + " " +  value );
 	if(id == undefined){
 		id = value;
 		idName = key;
-		
+		objeto[idName] = value;
 	}else{
-
+		if(key == "trajetoria"){
+			endTraj= true;
+		}else if(!(value instanceof  Object)){
+				if(!endCampName)campNames.push(key);
+				single_traj[key] = value;	
+		}else{
+			if(endTraj){
+				endTraj = false;
+				objeto['trajetoria'] = trajetorias;
+				data.push(objeto);
+				objeto = {};
+				id = undefined;
+				single_traj = {};
+				trajetorias = [];
+			}else{
+				trajetorias.push(single_traj);
+				single_traj = {};
+				endCampName = true;
+			}
+		}
+		//campNames.push(key);
 	}
 	
 
 }
+//console.log(data);
