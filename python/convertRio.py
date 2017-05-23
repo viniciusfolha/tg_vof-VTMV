@@ -1,7 +1,7 @@
 import json
 
 novo = []
-with open('RIO_BRT_ALL.txt') as infile:
+with open('../data/RIO_BRT_ALL.txt') as infile:
 	jsondata = json.load(infile)
 	for idx,veiculo in enumerate(jsondata["veiculos"]):
 		aux = [idx_novo for idx_novo,item in enumerate(novo) if item['idObj'] == veiculo["codigo"]]
@@ -27,5 +27,5 @@ with open('RIO_BRT_ALL.txt') as infile:
 			traj['velocidade'] = veiculo["velocidade"];
 			novo[aux[0]]['trajetoria'].append(traj);
 
-with open('RIO_BRT_ALL_CONVERTED.txt', 'w') as outfile:
-	json.dump(novo, outfile,ensure_ascii=True)
+with open('../data/RIO_BRT_ALL_CONVERTED2.json', 'w') as outfile:
+	json.dump(novo, outfile,indent=4,ensure_ascii=True)

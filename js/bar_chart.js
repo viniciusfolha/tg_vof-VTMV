@@ -2,7 +2,7 @@ class BarChart{
 
     //container needs to be either an svg element
     //or a group element
-  constructor(id,container,x,y,width,height){
+  constructor(id,container,x,y,width,height,opcoes){
     this.id = id;
     this.margin = {top: 3, right: 2, bottom: 5, left: 10};  
     this.x = x;
@@ -17,7 +17,6 @@ class BarChart{
     this.xScale = d3.scaleBand().rangeRound([0, this.width]).padding(0.2);
     this.yScale = d3.scaleLinear().rangeRound([this.height,0]);
 
-
     this.data = [];
 
     this.xAxisGroup = this.canvas.append("g")
@@ -26,8 +25,7 @@ class BarChart{
     this.xAxis = d3.axisBottom(this.xScale).ticks(10);
 
     this.xAxisGroup.call(this.xAxis);
-
-    
+    this.escolha;
 
   
     this.yAxisGroup = this.canvas.append("g")
@@ -35,6 +33,28 @@ class BarChart{
       .attr("transform","translate(0,0)");
     this.yAxis = d3.axisLeft(this.yScale);
     this.yAxisGroup.call(this.yAxis);
+    this.dados_chart = [];
+
+
+
+
+
+
+    this.opcoes = opcoes;
+
+//Create and append select list
+  this.selectList = document.createElement("select");
+  this.selectList.id = "mySelect";
+
+
+  document.body.appendChild(this.selectList);
+  for (var i = 0; i < this.opcoes.length; i++) {
+    var option = document.createElement("option");
+    option.value = this.opcoes[i];
+    option.text = this.opcoes[i];
+    this.selectList.appendChild(option);
+  }
+  this.escolha = this.opcoes[0];
 
 
     /*
@@ -48,19 +68,44 @@ class BarChart{
   */
 
   }
+  changeComboBox(data){
+ 
+    this.escolha   = this.value;
+    var value  = this.value;
+    this.dados_chart = data.map(function (e) {
+               return(e.trajetoria.map(function(t){
+                return [e.idObj , (t[value])];
+              }))
+              
+          });
+    this.dados_chart = [].concat.apply([], this.dados_chart);
+    
+    var dataYExtent = d3.extent(this.dados_chart.map(function(d){return d[1]}));
+    this.yScale.domain(dataYExtent);
+    
+    this.update();
+
+
+  }
 
   setData(data){
     this.data = data;
     //
-
+    this.selectList.onchange = this.changeComboBox(data);
     //var dataXExtent = d3.extent(this.data.map(function(d){return d[0]}));
-   
-    this.xScale.domain(this.data.map(function(d){return d[0]}));
+    this.dados_chart = data.map(function (e) {
+               return(e.trajetoria.map(function(t){
+                return [e.idObj , t.velocidade];
+              }))
+              
+          });
+    this.dados_chart = [].concat.apply([], this.dados_chart);
+    this.xScale.domain(this.dados_chart.map(function(d){return d[0]}));
     this.xAxis = d3.axisBottom(this.xScale).ticks(10);
 
     //
 
-    var dataYExtent = d3.extent(this.data.map(function(d){return d[1]}));
+    var dataYExtent = d3.extent(this.dados_chart.map(function(d){return d[1]}));
     this.yScale.domain(dataYExtent);
  
     this.update();
@@ -71,7 +116,7 @@ class BarChart{
     var myBars =
       this.canvas
         .selectAll(".bar")
-        .data(this.data);
+        .data(this.dados_chart);
     
     myBars
       .exit()
