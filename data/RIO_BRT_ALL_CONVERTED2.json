@@ -7785,18 +7785,6 @@
         ]
     }, 
     {
-        "idObj": "39828", 
-        "trajetoria": [
-            {
-                "latitude": -22.96531333333333, 
-                "velocidade": 0, 
-                "datahora": 1493331894000, 
-                "linha": "5800N1", 
-                "longitude": -43.39164666666667
-            }
-        ]
-    }, 
-    {
         "idObj": "47529", 
         "trajetoria": [
             {

@@ -28,4 +28,13 @@
 .line_chart {fill: none;
 stroke: steelblue;}
 
+.grid line {
+  stroke: lightgrey;
+  stroke-opacity: 0.7;
+  shape-rendering: crispEdges;
+}
 
+.view {
+  fill: url(#gradient);
+  stroke: #000;
+}

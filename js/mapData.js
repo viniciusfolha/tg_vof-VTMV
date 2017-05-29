@@ -15,7 +15,7 @@ var g = svg.append("g");
 var configData;
 var dados;
 
-readConfig("data/brt.config");
+readConfig("data/hur.config");
 	/* Initialize the SVG layer */
 	/* We simply pick up the SVG from the map object */
 
@@ -30,13 +30,18 @@ function readConfig(path){
 
 function readdata(){
 
-	d3.json("data/RIO_BRT_ALL_CONVERTED2.json", function(error, data) {
+	d3.json("data/hurdat2-1851-2016_CONVERTED.json", function(error, data) {
 		if (error) return console.warn(error);
-
 		
+		if(configData.datahora == "default"){
+			var formatT = d3.timeParse ('%Y%m%d-%H%M')
+			data.forEach(function(d){
+				d.trajetoria.forEach(function(e){e.datahora = formatT(e.datahora); })
+			})
+		}
 		
 		var info = L.control({position: 'bottomright'});
-
+		map.setView([data[0].trajetoria[0].latitude,data[0].trajetoria[0].longitude],5);
 		info.onAdd = function (map) {
 		    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
 		    this.update();
@@ -99,39 +104,21 @@ function readdata(){
 
 	//BAR_CHART
 		 
-		var mySVG =
-	    d3.select("body")
-	    	.append("svg")
-	    	.attr("width","1100")
-	    	.attr("height","600");
+		var mySVG = d3.select("body")
+	    				.append("svg")
+	    				.attr("width","1100")
+	    				.attr("height","600");
 
-		var bar_chart = new BarChart("barchart1",mySVG,100,100,400,300,configData.nomes);
-		var dados_chart = [];
-
-		var dados_chart0 = data.map(function(d){ return (d.trajetoria)});
-
-		var dados_chart1 = data.map(function(d){ return (d.trajetoria )});
-		var dados_chart = []
-		dados_chart = data.map(function (e) {
-							 return(e.trajetoria.map(function(t){
-								return [e.idObj , t.velocidade];
-							}))
-	    				
-					});
-
-		dados_chart = [].concat.apply([], dados_chart);
+		var bar_chart = new BarChart("barchart1",mySVG,100,100,400,300);
 		
-		bar_chart.setData(data);
+		bar_chart.setData(data,configData.nomes);
 
 
 	//LINE_CHART
 
 		var line_chart = new LineChart("linechart1",mySVG,600,100,400,300);
-		dados_line1 = data.map(function(d){ return d.datahora });
-		var dados_line = dados_line1.map(function (e, i) {
-	    				return {datahora : e, velocidade: dados_chart1[i]};
-					});
-		//line_chart.setData(dados_line);
+
+		line_chart.setData(data, configData.nomes);
 
 
 

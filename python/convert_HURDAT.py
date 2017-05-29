@@ -3,11 +3,13 @@ import json
 with open('../data/hurdat2-1851-2016-041117.txt') as infile:
 	novo = []
 	firstline = infile.readline()
-	while firstline:
-		
+	t = 0
+	while t<=20:
+		t+=1	
 		print firstline
 		hur =  [x.strip() for x in firstline.split(',')]
-		hur_name = "%s_%s" % (hur[0], hur[1])
+		#hur_name = "%s_%s" % (hur[0], hur[1])
+		hur_name = hur[0]
 		obj = {}
 		obj['idObj'] = hur_name;
 		obj['trajetoria'] = [];
@@ -29,12 +31,14 @@ with open('../data/hurdat2-1851-2016-041117.txt') as infile:
 			trajetoria['latitude'] = latitude;
 			trajetoria['longitude'] = longitude;
 			trajetoria['datahora'] = datahora
-			trajetoria['wind'] = wind
-			trajetoria['pressure'] = pressure
+			trajetoria['wind'] = float(wind)
+			trajetoria['pressure'] = float(pressure)
 			trajetoria['status'] = status
 			obj['trajetoria'].append(trajetoria)
 			novo.append(obj)
 		firstline = infile.readline()
+		
+		print t
 
 with open('../data/hurdat2-1851-2016_CONVERTED.json', 'w') as outfile:
 	json.dump(novo, outfile,indent=4,ensure_ascii=True)
