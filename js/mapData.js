@@ -11,9 +11,17 @@ var map = L.map('map').setView([-22.906323, -43.182386], 12);
 L.svg().addTo(map);	
 var svg = d3.select("#map").select("svg");
 
-var g = svg.append("g");
+var g = svg.attr("id", "circles_layer").append("g");
 var configData;
 var dados;
+
+L.svg().addTo(map);	
+var aux = d3.select("#map").selectAll("svg");
+var newSVG = aux.filter(function (d, i) { return i === 1;})
+newSVG.attr("id", "lines_layer").append("g");
+
+
+
 
 readConfig("data/hur.config");
 	/* Initialize the SVG layer */
