@@ -100,7 +100,9 @@ class BarChart{
     this.data = data;
     //
     this.opcoes = opcoes;
-    document.body.appendChild(this.selectList);
+        var div = document.getElementById(this.id);
+        
+        div.appendChild(this.selectList);
     for (var i = 0; i < this.opcoes.length; i++) {
         var option = document.createElement("option");
         option.value = this.opcoes[i];

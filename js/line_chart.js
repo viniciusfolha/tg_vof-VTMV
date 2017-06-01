@@ -92,8 +92,10 @@ class LineChart{
 
 	    this.selected = this.opcoes[0];
         var that = this;
-
-        document.body.appendChild(this.selectList);
+        var div = document.getElementById(this.id);
+        
+        div.appendChild(this.selectList);
+        
 	    for (var i = 0; i < this.opcoes.length; i++) {
 	        var option = document.createElement("option");
 	        option.value = this.opcoes[i];

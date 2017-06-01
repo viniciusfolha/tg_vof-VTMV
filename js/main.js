@@ -33,14 +33,43 @@ function readData(){
 			var color  = d3.scaleOrdinal(d3.schemeCategory20b);
 
 			var map = new MapL("map",600,400, color);
-			var mySVG = d3.select("body")
+
+			var divM =  document.createElement("div");
+			divM.style.width = 100 +'%';
+			divM.id = "divMain";
+			
+			document.body.appendChild(divM);
+
+			var div = document.createElement("div");
+			div.style.width = 600 +'px';
+			div.style.height = 500 + 'px';
+			div.id = "barchart1";
+			div.style.display =  "inline";
+			divM.appendChild(div);
+
+			var mySVG = d3.select("#barchart1")
 	    				.append("svg")
-	    				.attr("width","1100")
-	    				.attr("height","600");
+	    				.attr("width","500")
+	    				.attr("height","400");
 
-			var bar_chart = new BarChart("barchart1",mySVG,100,100,400,300);
+			var bar_chart = new BarChart("barchart1",mySVG,0,50,400,300);
 
-			var line_chart = new LineChart("linechart1",mySVG,600,100,400,300);
+
+			var div = document.createElement("div");
+			div.style.width = 600 +'px';
+			div.style.height = 500 + 'px';
+			div.id = "linechart1";
+			div.style.display =  "inline";
+			divM.appendChild(div);
+
+			var mySVG2 = d3.select("#linechart1")
+	    				.append("svg")
+	    				.attr("width","500")
+	    				.attr("height","400");
+
+
+
+			var line_chart = new LineChart("linechart1",mySVG2,0,50,400,300);
 
 			map.setData(data, configData);
 			bar_chart.setData(data,configData.nomes);
