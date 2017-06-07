@@ -35,7 +35,7 @@ with open('../data/hurdat2-1851-2016-041117.txt') as infile:
 			trajetoria['pressure'] = float(pressure)
 			trajetoria['status'] = status
 			obj['trajetoria'].append(trajetoria)
-			novo.append(obj)
+		novo.append(obj)
 		firstline = infile.readline()
 		
 		print t

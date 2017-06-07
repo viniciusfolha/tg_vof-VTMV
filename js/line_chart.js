@@ -12,6 +12,7 @@ class LineChart{
 
 	    this.canvas = container.append("g").attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
+
 	   // this.xScale = d3.scaleLinear().range([0, this.width]),
     	this.xScale = d3.scaleTime().range([0, width]);
     	this.yScale = d3.scaleLinear().range([this.height, 0]),
@@ -44,13 +45,37 @@ class LineChart{
 	   	this.selected;
 		this.opcoes;
 
+
+		//
+		this.zoom = d3.zoom()
+    			.on("zoom", this.zoomFunction.bind(this));
+    	this.canvas = this.canvas.append("g")
+		    .attr("class", "inner_space")
+		    .attr("transform", "translate( 0, 0)")
+		    .call(this.zoom);
+		this.newLines;
+
+
+    	//
   		this.selectList = document.createElement("select");
   		this.selectList.id = "comboboxLine";
 
 
 	}
 
+	zoomFunction(){
 
+		var new_xScale = d3.event.transform.rescaleX(this.xScale)
+		var new_yScale = d3.event.transform.rescaleY(this.yScale)
+		//console.log(d3.event.transform)
+
+		  // update axes
+		this.xAxisGroup.call(this.xAxis.scale(new_xScale));
+		this.xAxisGroup.call(this.yAxis.scale(new_yScale));
+
+		  // update circle
+		this.newLines.attr("transform", d3.event.transform)
+	}
 	do_grid(){
 	var that = this;
 	function make_x_gridlines() {		
@@ -201,7 +226,7 @@ class LineChart{
 	   
 	    var that = this;
 
-	    var newLines = myLines
+	    this.newLines = myLines
 	      .enter()
 	      .append("path")
 	      .merge(myLines)

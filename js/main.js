@@ -44,6 +44,7 @@ function readData(){
 			div.style.width = 600 +'px';
 			div.style.height = 500 + 'px';
 			div.id = "barchart1";
+			div.style.position = "relative";
 			div.style.display =  "inline";
 			divM.appendChild(div);
 
@@ -74,6 +75,32 @@ function readData(){
 			map.setData(data, configData);
 			bar_chart.setData(data,configData.nomes);
 			line_chart.setData(data, configData.nomes);
+
+
+
+			//GANTT
+			var div =  document.createElement("div");
+			div.style.width = 100 +'%';
+			div.id = "ganttchart";
+			document.body.appendChild(div);
+			var t = document.body.clientWidth; 
+			var mySVG3 = d3.select("#ganttchart")
+	    				.append("svg")
+	    				.attr("width",t)
+	    				.attr("height","400");
+	    	var gantt_chart = new GanttChart("ganttchart",mySVG3,0,50,t,300);
+	    	gantt_chart.setData(data,configData.nomes);
+
+
+
+
+
+
+
+
+
+
+
 
 
 
