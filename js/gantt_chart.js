@@ -10,7 +10,9 @@ class GanttChart{
 	    this.height = this.totalHeight - this.margin.top - this.margin.bottom;
 	    this.selectedIDS = [];
 
-	    this.canvas = container.append("g").attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
+	    this.canvas = container.append("g")
+	    	.attr("class", "gannt")
+	    	.attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
 	   // this.xScale = d3.scaleLinear().range([0, this.width]),
     	this.xScale = d3.scaleTime().range([0, this.width]);
@@ -22,7 +24,7 @@ class GanttChart{
 
 	    this.xAxisGroup = this.canvas.append("g")
 	      .attr("class","xAxis")
-	      .attr("transform","translate(0,"+(height-this.margin.top - this.margin.bottom)+")");
+	      .attr("transform","translate(0,"+this.height+")");
 	    this.xAxis = d3.axisBottom(this.xScale);
 
 	    this.xAxisGroup.call(this.xAxis);
@@ -46,8 +48,30 @@ class GanttChart{
 
   		this.selectList = document.createElement("select");
   		this.selectList.id = "comboboxLine";
+  		this.bargantt = this.canvas.append("g")
+  			.attr("class", "bargantt");
 
 
+  		this.heightCont = 30;
+  		this.xScaleCont = d3.scaleTime().range([0, this.width]);
+  		this.yScaleCont = d3.scaleBand().range([0, this.heightCont]);
+  		this.xAxisCont = d3.axisBottom(this.xScaleCont);
+
+		this.brush = d3.brushX()
+		    .extent([[0, 0], [this.width, this.heightCont]])
+		    .on("brush end", this.brushed.bind(this));
+
+		this.zoom = d3.zoom()
+			.scaleExtent([1, Infinity])
+			.translateExtent([[0, 0], [this.width, this.height]])
+			.extent([[0, 0], [this.width, this.height]])
+			.on("zoom", this.zoomed.bind(this));
+
+		this.context = this.canvas.append("g")
+		    .attr("class", "context")
+		    .attr("transform", "translate(" + 0 + "," + (this.height + 20) +")");
+
+		this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
 	}
 
 	setData(data,opcoes){
@@ -83,7 +107,7 @@ class GanttChart{
 	    this.yScale.domain(names);
 
 	    //this.zScale.domain(this.data.map(function(c) { return c.idObj; }));
-	    var color  = d3.scaleOrdinal(d3.schemeCategory20b);
+	    
 
 	    this.xAxis = d3.axisBottom(this.xScale);
 
@@ -92,22 +116,88 @@ class GanttChart{
 
 		this.xAxisGroup.call(this.xAxis);
 		this.yAxisGroup.call(this.yAxis);	    
-		this.canvas.selectAll(".bargantt")
+		this.bargantt.selectAll(".bargantt")
 	      .data(this.data)
           .enter().append("rect")
-          .attr("class", "bargantt")
+          .attr("class", "rect_gannt")
           .attr("y", function(d) { return that.yScale(d.idObj); })
           .attr("height", that.yScale.bandwidth())
           .attr("x", function(d) { return that.xScale(d.startDate); })
           .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
-          .attr("fill", function(d) { return color(d.idObj); })
-          
-	      
+          .attr("fill", function(d) { return that.color(d.idObj); })
+        
+
+
+
+        this.xScaleCont.domain(this.xScale.domain());
+        this.yScaleCont.domain(names);
+
+
+	    this.context.selectAll(".rect")
+	    	.data(this.data)
+	    	.enter().append("rect")
+        	.attr("y", function(d) { return that.yScaleCont(d.idObj); })
+        	.attr("height", that.yScaleCont.bandwidth())
+        	.attr("x", function(d) { return that.xScaleCont(d.startDate); })
+        	.attr("width", function(d) { return that.xScaleCont(d.endDate) - that.xScaleCont(d.startDate)})
+        	.attr("fill", function(d) { return that.color(d.idObj); })
+        
+        this.context.append("g")
+			.attr("class", "xAxis")
+			.attr("transform", "translate(0," + this.heightCont + ")")
+			.call(this.xAxisCont);
+	    this.context.append("g")
+			.attr("class", "brush")
+			.call(this.brush)
+			.call(this.brush.move, this.xScale.range());
+		this.canvas.append("rect")
+	      .attr("class", "zoom")
+	      .attr("width", this.width)
+	      .attr("height", this.height)
+	      .attr("fill","none")
+	      .attr("pointer-events","all")
+	      .call(this.zoom);
 	      
 		this.do_grid();
 	    //this.update();
 
   	}
+
+  	zoomed() {
+	  if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+	  
+	  var that = this;
+	  var t = d3.event.transform;
+	  this.xScale.domain(t.rescaleX(this.xScaleCont).domain());
+	  this.bargantt.selectAll(".rect_gannt")
+	  	  .attr("y", function(d) { return that.yScale(d.idObj); })
+          .attr("height", that.yScale.bandwidth())
+          .attr("x", function(d) { return that.xScale(d.startDate); })
+          .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
+          .attr("fill", function(d) { return that.color(d.idObj); });
+	  this.xAxisGroup.call(this.xAxis);
+	  this.context.select(".brush").call(this.brush.move, this.xScale.range().map(t.invertX, t));
+	}
+
+
+	brushed() {
+		if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoo
+		var that = this;
+		var s = d3.event.selection || this.xScaleCont.range();
+		this.xScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
+  		this.bargantt.selectAll(".rect_gannt")
+		  .attr("y", function(d) { return that.yScale(d.idObj); })
+          .attr("height", that.yScale.bandwidth())
+          .attr("x", function(d) { return that.xScale(d.startDate); })
+          .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
+          .attr("fill", function(d) { return that.color(d.idObj); })
+  		this.xAxisGroup.call(this.xAxis);
+	
+	}
+
+
+
+
   	do_grid(){
 		var that = this;
 		function make_x_gridlines() {		

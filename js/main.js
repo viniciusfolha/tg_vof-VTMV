@@ -53,7 +53,7 @@ function readData(){
 	    				.attr("width","500")
 	    				.attr("height","400");
 
-			var bar_chart = new BarChart("barchart1",mySVG,0,50,400,300);
+			var bar_chart = new BarChart("barchart1",mySVG,0,20,400,300);
 
 
 			var div = document.createElement("div");
@@ -76,6 +76,18 @@ function readData(){
 			bar_chart.setData(data,configData.nomes);
 			line_chart.setData(data, configData.nomes);
 
+			var myDispatcher = d3.dispatch("selectionChanged");
+
+
+			myDispatcher.on("selectionChanged", function(){
+				debugger;
+			    if(this.callerID === "sct1")
+				mySCT2.setSelected(this.selectedIndices);
+			    if(this.callerID === "sct2")
+				mySCT1.setSelected(this.selectedIndices);
+
+
+			});
 
 
 			//GANTT
@@ -88,10 +100,10 @@ function readData(){
 	    				.append("svg")
 	    				.attr("width",t)
 	    				.attr("height","400");
-	    	var gantt_chart = new GanttChart("ganttchart",mySVG3,0,50,t,300);
+	    	var gantt_chart = new GanttChart("ganttchart",mySVG3,0,0,t,300);
 	    	gantt_chart.setData(data,configData.nomes);
-
-
+	    	gantt_chart.dispatcher = myDispatcher;
+	    	
 
 
 

@@ -10,7 +10,8 @@ class LineChart{
 	    this.height = this.totalHeight - this.margin.top - this.margin.bottom;
 	    this.selectedIDS = [];
 
-	    this.canvas = container.append("g").attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
+	    this.canvas = container.append("g")
+	    	.attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
 
 	   // this.xScale = d3.scaleLinear().range([0, this.width]),
@@ -23,7 +24,7 @@ class LineChart{
 
 	    this.xAxisGroup = this.canvas.append("g")
 	      .attr("class","xAxis")
-	      .attr("transform","translate(0,"+(height-this.margin.top - this.margin.bottom)+")");
+	      .attr("transform","translate(0,"+this.height+")");
 	    this.xAxis = d3.axisBottom(this.xScale);
 
 	    this.xAxisGroup.call(this.xAxis);
@@ -49,10 +50,29 @@ class LineChart{
 		//
 		this.zoom = d3.zoom()
     			.on("zoom", this.zoomFunction.bind(this));
+
+    	/*
     	this.canvas = this.canvas.append("g")
 		    .attr("class", "inner_space")
 		    .attr("transform", "translate( 0, 0)")
 		    .call(this.zoom);
+		*/
+
+
+    	this.rect = this.canvas
+		    
+		    .append("rect")
+		      .attr("class", "zoom")
+		      .attr("width", this.totalWidth)
+		      .attr("height", this.height)
+		      .attr("fill", "#FFFFFF")
+		      .attr("transform", "translate(" + 0 + "," + 0 + ")")
+		      .call(this.zoom);
+
+
+		this.lines = this.canvas.append("g")
+  			.attr("class", "line_chart");
+
 		this.newLines;
 
 
@@ -64,30 +84,37 @@ class LineChart{
 	}
 
 	zoomFunction(){
-
+		
 		var new_xScale = d3.event.transform.rescaleX(this.xScale)
 		var new_yScale = d3.event.transform.rescaleY(this.yScale)
 		//console.log(d3.event.transform)
 
 		  // update axes
 		this.xAxisGroup.call(this.xAxis.scale(new_xScale));
-		this.xAxisGroup.call(this.yAxis.scale(new_yScale));
+		this.yAxisGroup.call(this.yAxis.scale(new_yScale));
 
 		  // update circle
-		this.newLines.attr("transform", d3.event.transform)
-	}
-	do_grid(){
-	var that = this;
-	function make_x_gridlines() {		
-	    return d3.axisBottom(that.xScale)
-	        .ticks(5)
+		//this.newLines.attr("transform", d3.event.transform)
+		var that = this;
+		this.toline = d3.line()
+	   		.x(function(d) {  return new_xScale(d.datahora); })
+		    .y(function(d) {  return new_yScale(d[that.selected]); });
+		this.newLines.attr("d", function(d) { return that.toline(d.trajetoria)})
 	}
 
-	// gridlines in y axis function
-	function make_y_gridlines() {		
-	    return d3.axisLeft(that.yScale)
-	        .ticks(5)
-	}
+
+	do_grid(){
+		var that = this;
+		function make_x_gridlines() {		
+		    return d3.axisBottom(that.xScale)
+		        .ticks(5)
+		}
+
+		// gridlines in y axis function
+		function make_y_gridlines() {		
+		    return d3.axisLeft(that.yScale)
+		        .ticks(5)
+		}
 
 
 		  // add the X gridlines
@@ -155,6 +182,14 @@ class LineChart{
 	   		.x(function(d) {  return xScale(d.datahora); })
 		    .y(function(d) {  return yScale(d[that.selected]); });
 
+
+
+
+
+		
+
+
+
 		this.do_grid();
 	    this.update();
 
@@ -203,9 +238,9 @@ class LineChart{
   	}
 
   	update(){
-  		
+
 	    var myLines =
-	      this.canvas
+	      this.lines
 	        .selectAll(".line_chart")
 	        .data(this.data);
 	    
@@ -230,7 +265,6 @@ class LineChart{
 	      .enter()
 	      .append("path")
 	      .merge(myLines)
-	      .attr("class", "line_chart")
 	      .attr("d", function(d) { return that.toline(d.trajetoria)})
 	      .style("stroke", function(d) { return that.zScale (d.idObj); });
 	    

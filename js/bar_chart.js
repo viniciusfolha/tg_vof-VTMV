@@ -4,7 +4,7 @@ class BarChart{
     //or a group element
   constructor(id,container,x,y,width,height,opcoes){
     this.id = id;
-    this.margin = {top: 5, right: 2, bottom: 40, left: 40};  
+    this.margin = {top: 5, right: 2, bottom: 20, left: 40};  
     this.x = x;
     this.y = y;
     this.totalWidth  = width;
