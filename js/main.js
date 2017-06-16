@@ -79,15 +79,7 @@ function readData(){
 			var myDispatcher = d3.dispatch("selectionChanged");
 
 
-			myDispatcher.on("selectionChanged", function(){
-				debugger;
-			    if(this.callerID === "sct1")
-				mySCT2.setSelected(this.selectedIndices);
-			    if(this.callerID === "sct2")
-				mySCT1.setSelected(this.selectedIndices);
 
-
-			});
 
 
 			//GANTT
@@ -102,6 +94,20 @@ function readData(){
 	    				.attr("height","400");
 	    	var gantt_chart = new GanttChart("ganttchart",mySVG3,0,0,t,300);
 	    	gantt_chart.setData(data,configData.nomes);
+
+	    	myDispatcher.on("selectionChanged", function(){
+				
+			    if(this.callerID === "ganttchart"){
+					line_chart.setDomain(this.time);
+					map.setDomain(this.time);
+				}
+			    if(this.callerID === "")
+				//mySCT1.setSelected(this.selectedIndices);
+				console.log("IUIUIUIU")
+
+				
+			});
+	    	map.dispatcher - myDispatcher;
 	    	gantt_chart.dispatcher = myDispatcher;
 	    	
 

@@ -8,7 +8,7 @@ class GanttChart{
 	    this.totalHeight = height;
 	    this.width = this.totalWidth - this.margin.left - this.margin.right;
 	    this.height = this.totalHeight - this.margin.top - this.margin.bottom;
-	    this.selectedIDS = [];
+	    this.time = [];
 
 	    this.canvas = container.append("g")
 	    	.attr("class", "gannt")
@@ -177,6 +177,9 @@ class GanttChart{
           .attr("fill", function(d) { return that.color(d.idObj); });
 	  this.xAxisGroup.call(this.xAxis);
 	  this.context.select(".brush").call(this.brush.move, this.xScale.range().map(t.invertX, t));
+	  that.time = this.xScale.domain();
+	  if(this.dispatcher)
+	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time})
 	}
 
 
@@ -192,6 +195,9 @@ class GanttChart{
           .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
           .attr("fill", function(d) { return that.color(d.idObj); })
   		this.xAxisGroup.call(this.xAxis);
+  		that.time = this.xScale.domain();
+  		if(this.dispatcher)
+	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time})
 	
 	}
 

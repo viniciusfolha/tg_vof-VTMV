@@ -15,7 +15,7 @@ class LineChart{
 
 
 	   // this.xScale = d3.scaleLinear().range([0, this.width]),
-    	this.xScale = d3.scaleTime().range([0, width]);
+    	this.xScale = d3.scaleTime().rangeRound([0, width]);
     	this.yScale = d3.scaleLinear().range([this.height, 0]),
     	
     	this.zScale = d3.scaleOrdinal(d3.schemeCategory20b);
@@ -97,7 +97,7 @@ class LineChart{
 		//this.newLines.attr("transform", d3.event.transform)
 		var that = this;
 		this.toline = d3.line()
-	   		.x(function(d) {  return new_xScale(d.datahora); })
+	   		.x(function(d) {  return new_xScale(d.novadata); })
 		    .y(function(d) {  return new_yScale(d[that.selected]); });
 		this.newLines.attr("d", function(d) { return that.toline(d.trajetoria)})
 	}
@@ -156,12 +156,15 @@ class LineChart{
 	    }
 	    this.selectList.onchange = this.changeComboBox.bind(that);
 
-
+	    this.data.forEach(function(d){d.trajetoria.forEach(function(e){
+	    	e.novadata = new Date(e.datahora);
+	    	e.novadata.setYear(2000);
+	    })})
 
 
 	    this.xScale.domain([
-		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d.datahora; }); }),
-		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d.datahora; }); })
+		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d.novadata }); }),
+		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d.novadata }); })
 		]);
 
 	  
@@ -179,7 +182,7 @@ class LineChart{
 	 	var xScale = this.xScale;
 	 	var yScale = this.yScale;
 	 	this.toline = d3.line()
-	   		.x(function(d) {  return xScale(d.datahora); })
+	   		.x(function(d) {  return xScale(d.novadata ); })
 		    .y(function(d) {  return yScale(d[that.selected]); });
 
 
@@ -207,7 +210,7 @@ class LineChart{
 		var xScale = this.xScale;
 	 	var yScale = this.yScale;
 	 	this.toline = d3.line()
-	   		.x(function(d) {  return xScale(d.datahora); })
+	   		.x(function(d) {  return xScale(d.novadata); })
 		    .y(function(d) {  return yScale(d[thisCont.target.value]); });
 		this.xAxis.scale(this.xScale);
 	    this.xAxisGroup.call(this.xAxis);
@@ -310,7 +313,7 @@ class LineChart{
   	var that = this;
 
 		this.toline = d3.line()
-	   		.x(function(d) {  return that.xScale(d.datahora); })
+	   		.x(function(d) {  return that.xScale(d.novadata); })
 		    .y(function(d) {  return that.yScale(d[that.selected]); });
   	this.newLines.attr("d", function(d) { return that.toline(d.trajetoria)})
 

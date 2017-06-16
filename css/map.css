@@ -30,4 +30,9 @@
     margin-right: 8px;
     opacity: 0.7;
 }
-.legend p{
+
+.line {                         
+  fill: none;                   
+  stroke: url(#line-gradient);  
+  stroke-width: 2px;            
+}

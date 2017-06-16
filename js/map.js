@@ -35,6 +35,7 @@ class MapL{
 		this.circleGroup;
 		this.featureL;
 		this.toLine;
+		this.Selected;
 
 
 		this.legend = L.control({position: 'bottomright'});
@@ -107,6 +108,24 @@ class MapL{
 	}
 	createLines(){
 		var that = this;
+		  that.newSVG.append("linearGradient")				
+			    .attr("id", "line-gradient")			
+			    .attr("gradientUnits", "userSpaceOnUse")	
+			    .attr("x1", 0).attr("y1", 0)			
+			    .attr("x2", 0).attr("y2", 100)		
+			  .selectAll("stop")						
+			    .data([								
+			      {offset: "0%", color: "red"},		
+			      {offset: "40%", color: "red"},	
+			      {offset: "40%", color: "black"},		
+			      {offset: "62%", color: "black"},		
+			      {offset: "62%", color: "lawngreen"},	
+			      {offset: "100%", color: "lawngreen"}	
+			    ])					
+			  .enter().append("stop")			
+			    .attr("offset", function(d) { return d.offset; })	
+			    .attr("stop-color", function(d) { return d.color; });
+			    
 		this.toLine = d3.line()
 				.curve(d3.curveLinear)
 				.x(function(d){
@@ -122,7 +141,7 @@ class MapL{
 				.attr("class", "line")
 				.attr('d', function(d){  return that.toLine( d.trajetoria);}   )
 				.attr("fill", "none")
-		      	.attr("stroke", "red")
+		      	//.style("stroke", function(d) {debugger; return that.color(d.idObj) })
 		      	.attr("stroke-linejoin", "round")
 		      	.attr("stroke-linecap", "round")
 		      	.attr("stroke-width", 1.5);
@@ -198,7 +217,33 @@ class MapL{
 		this.info.addTo(this.map);
 	}
 
+	setDomain(time){
+		var that = this;
+		this.circleGroup.style("opacity", 1);
+		this.featureL.style("opacity", 1);
+		/*
+		var aux =        this.data.map(function(e){ e.trajetoria.forEach(function(c){c.id = e.idObj;} ) ; return e.trajetoria});
+		var  teste =  [].concat.apply([], aux)
 
+		this.Selected = teste.filter(function(d){ return (d.datahora > time[0] && d.datahora < time[1]) }) ;
+		var t =d3.nest()
+  		.key(function(d) { return d.id; }).entries(this.Selected);
+  		t.forEach(function(d){that.rename_attr(d,"key","idObj"); that.rename_attr(d,"values","trajetoria")})
+		*/
+  		this.circleGroup.filter(function(d){  return !(d.datahora >= time[0] && d.datahora <= time[1]) })
+  		.style("opacity", 0.05)
+
+  		this.featureL.filter(function(d){  return !(d.startDate >= time[0] && d.endDate <= time[1]) })
+  		.style("opacity", 0.05)
+
+	}
+
+	rename_attr(obj, old_name, new_name) {
+      if (obj.hasOwnProperty(old_name)) {
+          obj[new_name] = obj[old_name];
+          delete obj[old_name];
+      }
+	}
 
 
 
