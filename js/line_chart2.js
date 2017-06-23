@@ -15,8 +15,8 @@ class LineChart{
 
 
 	   // this.xScale = d3.scaleLinear().range([0, this.width]),
-    	this.xScale = d3.scaleTime().rangeRound([0, width]);
-    	this.yScale = d3.scaleLinear().range([this.height, 0]),
+    	this.xScale = d3.scaleTime().rangeRound([0, width]).clamp(true);
+    	this.yScale = d3.scaleLinear().range([this.height, 0]).clamp(true);
     	
     	this.zScale = d3.scaleOrdinal(d3.schemeCategory20b);
 
@@ -306,16 +306,41 @@ class LineChart{
    
 
   }
-  setDomain(time){
-  	this.xScale.domain(time);
-  	this.xAxis.scale(this.xScale);
-  	this.xAxisGroup.call(this.xAxis);
+  setDomain(time, datafiltered){
+  	//this.xScale.domain(time);
+  	//this.xAxis.scale(this.xScale);
+  	//this.xAxisGroup.call(this.xAxis);
   	var that = this;
 
 		this.toline = d3.line()
 	   		.x(function(d) {  return that.xScale(d.novadata); })
 		    .y(function(d) {  return that.yScale(d[that.selected]); });
-  	this.newLines.attr("d", function(d) { return that.toline(d.trajetoria)})
+    datafiltered.forEach(function(d){d.trajetoria.forEach(function(e){
+	    	e.novadata = new Date(e.datahora);
+	    	e.novadata.setYear(2000);
+	    })})
+    this.newLines.remove();
+    var myLines =
+	      this.lines
+	        .selectAll(".line_chart")
+	        .data(datafiltered);
+	    
+	    myLines
+	      .exit()
+	      .remove();
 
+    	    this.newLines = myLines
+	      .enter()
+	      .append("path")
+	      .merge(myLines)
+	      .attr("d", function(d) { return that.toline(d.trajetoria)})
+	      .style("stroke", function(d) { return that.zScale (d.idObj); });
+    /*
+    this.newLines.selectAll("path").data(datafiltered);  
+    this.newLines.exit().remove();
+    this.newLines.selectAll("path").data(datafiltered)
+  	.attr("d", function(d) { return that.toline(d.trajetoria)})
+  	*/
+  	
   }
 }

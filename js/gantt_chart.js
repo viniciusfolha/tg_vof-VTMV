@@ -15,7 +15,7 @@ class GanttChart{
 	    	.attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
 	   // this.xScale = d3.scaleLinear().range([0, this.width]),
-    	this.xScale = d3.scaleTime().range([0, this.width]);
+    	this.xScale = d3.scaleTime().range([0, this.width]).clamp(true);
     	this.yScale = d3.scaleBand().range([0, this.height]),
     	
     	//this.zScale = d3.scaleOrdinal(d3.schemeCategory20b);
@@ -158,7 +158,7 @@ class GanttChart{
 	      .attr("pointer-events","all")
 	      .call(this.zoom);
 	      
-		this.do_grid();
+		//this.do_grid();
 	    //this.update();
 
   	}
@@ -169,6 +169,23 @@ class GanttChart{
 	  var that = this;
 	  var t = d3.event.transform;
 	  this.xScale.domain(t.rescaleX(this.xScaleCont).domain());
+	  that.time = this.xScale.domain();
+	  var datafiltered = this.data.filter(function(d){return !(that.time[0] > d.endDate || d.startDate > that.time[1]) })
+	  var names = datafiltered.map(function(d){return d.idObj});
+	  this.yScale.domain(names);
+
+	   
+	  this.yAxis.scale(this.yScale);
+
+	  this.yAxisGroup.call(this.yAxis);	    
+
+
+      this.bargantt.selectAll(".bargantt")
+  		.data(datafiltered);
+
+      this.bargantt.exit().remove()
+
+
 	  this.bargantt.selectAll(".rect_gannt")
 	  	  .attr("y", function(d) { return that.yScale(d.idObj); })
           .attr("height", that.yScale.bandwidth())
@@ -179,7 +196,7 @@ class GanttChart{
 	  this.context.select(".brush").call(this.brush.move, this.xScale.range().map(t.invertX, t));
 	  that.time = this.xScale.domain();
 	  if(this.dispatcher)
-	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time})
+	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: datafiltered})
 	}
 
 
@@ -188,7 +205,26 @@ class GanttChart{
 		var that = this;
 		var s = d3.event.selection || this.xScaleCont.range();
 		this.xScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
-  		this.bargantt.selectAll(".rect_gannt")
+
+		that.time = this.xScale.domain();
+		var datafiltered = this.data.filter(function(d){return !(that.time[0] > d.endDate || d.startDate > that.time[1]) })
+		var names = datafiltered.map(function(d){return d.idObj});
+		this.yScale.domain(names);
+
+	   
+	  	this.yAxis.scale(this.yScale);
+
+		this.yAxisGroup.call(this.yAxis);	    
+
+
+        this.bargantt.selectAll(".bargantt")
+  		.data(datafiltered);
+
+        this.bargantt.exit().remove()
+        
+
+  		this.bargantt  		
+  		.selectAll(".rect_gannt")  
 		  .attr("y", function(d) { return that.yScale(d.idObj); })
           .attr("height", that.yScale.bandwidth())
           .attr("x", function(d) { return that.xScale(d.startDate); })
@@ -197,7 +233,7 @@ class GanttChart{
   		this.xAxisGroup.call(this.xAxis);
   		that.time = this.xScale.domain();
   		if(this.dispatcher)
-	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time})
+	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: datafiltered})
 	
 	}
 

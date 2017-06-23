@@ -98,7 +98,7 @@ function readData(){
 	    	myDispatcher.on("selectionChanged", function(){
 				
 			    if(this.callerID === "ganttchart"){
-					line_chart.setDomain(this.time);
+					line_chart.setDomain(this.time, this.datafiltered);
 					map.setDomain(this.time);
 				}
 			    if(this.callerID === "")
