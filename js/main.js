@@ -101,9 +101,17 @@ function readData(){
 					line_chart.setDomainRange(this.time, this.datafiltered);
 					map.setDomainRange(this.time);
 				}
-			    if(this.callerID === "barchart1")
-					map.setDomain(this.time, this.timeType);
-				console.log("IUIUIUIU")
+			    if(this.callerID === "barchart1"){
+					if(!this.returnB){
+						map.setDomain(this.time, this.timeType);
+						line_chart.setDomainRange(this.time, this.datafiltered);
+					}else{
+						map.reset();
+						line_chart.reset();
+					}
+
+			    }
+				
 
 				
 			});

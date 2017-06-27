@@ -306,6 +306,25 @@ class LineChart{
    
 
   }
+  reset(){
+  	var that = this;
+  	this.newLines.remove();
+    var myLines =
+	      this.lines
+	        .selectAll(".line_chart")
+	        .data(this.data);
+	    
+	    myLines
+	      .exit()
+	      .remove();
+
+    	    this.newLines = myLines
+	      .enter()
+	      .append("path")
+	      .merge(myLines)
+	      .attr("d", function(d) { return that.toline(d.trajetoria)})
+	      .style("stroke", function(d) { return that.zScale (d.idObj); });
+  }
   setDomainRange(time, datafiltered){
   	//this.xScale.domain(time);
   	//this.xAxis.scale(this.xScale);

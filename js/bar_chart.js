@@ -384,6 +384,8 @@ class BarChart{
     var that = this;
     if(contx instanceof MouseEvent){
       //Retorno a tela anterior, remove o botaoe muda o combobox
+      if(this.dispatcher)
+          this.dispatcher.apply("selectionChanged",{callerID:that.id, returnB: true})
       this.button.remove();
       this.selectList.innerHTML = "";
       for (var i = 0; i < this.time.length; i++) {

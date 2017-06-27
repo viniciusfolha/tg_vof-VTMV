@@ -112,6 +112,10 @@ class MapL{
 				)
 
 	}
+	reset(){
+		this.circleGroup.style("opacity", 1);
+		this.segments.style("opacity", 1);
+	}
 
 	segments(values) {
 		
