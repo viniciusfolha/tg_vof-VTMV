@@ -110,7 +110,7 @@ class BarChart{
         option.text = this.time[i];
         this.selectList.appendChild(option);
     }
-    this.selectList.onchange = this.return.bind(that);
+    this.selectList.onchange = this.returnB.bind(that);
     this.selected = this.time[0];
 
     
@@ -275,7 +275,10 @@ class BarChart{
             option.text = this.opcoes[i];
             this.selectList.appendChild(option);
         }
+        var timeType = this.selected;
+       
         this.selected = this.opcoes[0];
+
         this.selectList.onchange = this.changeComboBox.bind(that);
         
 
@@ -283,6 +286,11 @@ class BarChart{
 
 
         this.selectedIDS = this.data.filter(function(d){ return (obj.obj.findIndex(x => x.key ===  d.idObj) != -1) });
+
+
+        if(this.dispatcher)
+          this.dispatcher.apply("selectionChanged",{callerID:that.id,time:obj.idObj,timeType: timeType,  datafiltered: that.selectedIDS})
+
         this.dados_chart = this.selectedIDS.map(
         function(d){
           return {
@@ -301,7 +309,7 @@ class BarChart{
     this.button.setAttribute('class', 'btn');
     this.button.style = "top: 3; right: 0;position:absolute;z-index: 9999; margin-top: 50px;margin-right: 10px;"
     this.button.innerHTML = 'Return';
-    this.button.onclick = this.return.bind(this);
+    this.button.onclick = this.returnB.bind(this);
     this.div.appendChild(this.button);
 
 
@@ -371,11 +379,11 @@ class BarChart{
     
   
   }
-  return(contx){
+  returnB(contx){
     
     var that = this;
     if(contx instanceof MouseEvent){
-      
+      //Retorno a tela anterior, remove o botaoe muda o combobox
       this.button.remove();
       this.selectList.innerHTML = "";
       for (var i = 0; i < this.time.length; i++) {
@@ -384,7 +392,7 @@ class BarChart{
             option.text = this.time[i];
             this.selectList.appendChild(option);
       }
-        this.selectList.onchange = this.return.bind(that);
+        this.selectList.onchange = this.returnB.bind(that);
         this.selected = this.time[0];  
     }else{
       this.selected = contx.target.value;
@@ -498,9 +506,16 @@ class BarChart{
     )
 
     var dataYExtent = d3.extent(this.dados_chart.map(function(d){return d.average}));
-      console.log(dataYExtent);
-    dataYExtent[0] = 0;
+    if(dataYExtent[0]>= 0){
+      dataYExtent[0] = 0;
+    }else{
+      if(dataYExtent[1] < 0){
+        dataYExtent[1] = dataYExtent[0];
+        dataYExtent[0] = 0;
+      }
+    }
 
+    console.log(dataYExtent)
     this.yScale.domain(dataYExtent);
  
    

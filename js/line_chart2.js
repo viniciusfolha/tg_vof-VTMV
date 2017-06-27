@@ -306,7 +306,7 @@ class LineChart{
    
 
   }
-  setDomain(time, datafiltered){
+  setDomainRange(time, datafiltered){
   	//this.xScale.domain(time);
   	//this.xAxis.scale(this.xScale);
   	//this.xAxisGroup.call(this.xAxis);

@@ -98,17 +98,18 @@ function readData(){
 	    	myDispatcher.on("selectionChanged", function(){
 				
 			    if(this.callerID === "ganttchart"){
-					line_chart.setDomain(this.time, this.datafiltered);
-					map.setDomain(this.time);
+					line_chart.setDomainRange(this.time, this.datafiltered);
+					map.setDomainRange(this.time);
 				}
-			    if(this.callerID === "")
-				//mySCT1.setSelected(this.selectedIndices);
+			    if(this.callerID === "barchart1")
+					map.setDomain(this.time, this.timeType);
 				console.log("IUIUIUIU")
 
 				
 			});
 	    	map.dispatcher - myDispatcher;
 	    	gantt_chart.dispatcher = myDispatcher;
+	    	bar_chart.dispatcher = myDispatcher;
 	    	
 
 

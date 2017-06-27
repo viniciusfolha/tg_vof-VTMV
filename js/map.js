@@ -31,13 +31,16 @@ class MapL{
 		this.info;
 		this.idsObjs;
 		this.legend;
+		this.legend2;
 		this.configData;
 		this.circleGroup;
 		this.featureL;
 		this.toLine;
 		this.Selected;
-
-
+		this.colorScale;
+		this.segments;
+		this.domainSelected;
+		this.optionsDate = {  Weekday : {weekday: 'long'}, Year : {year: 'numeric'} , Month : {month: 'long'}, Day : {day: 'numeric'}, Hour : {"hour" : "numeric"} };
 		this.legend = L.control({position: 'bottomright'});
 	}
 
@@ -48,8 +51,17 @@ class MapL{
 		this.configData = configData;
 		this.createInfo();
 		this.createLegend();
-		this.createCircle(data);
+		data.forEach(function(d) {
+				d.trajetoria.forEach(function(e) {
+					e.LatLng = new L.LatLng(e.latitude,
+										e.longitude)
+				})
+				
+		})	
+
 		this.createLines()
+		this.createCircle(data);
+		this.createLegend2();
 		var that = this;
 		//this.map.on("viewreset", this.update.bind(that));
 		this.map.on("moveend", this.update.bind(that));
@@ -58,13 +70,7 @@ class MapL{
 
 	createCircle(data){
 		var that = this;
-		data.forEach(function(d) {
-				d.trajetoria.forEach(function(e) {
-					e.LatLng = new L.LatLng(e.latitude,
-										e.longitude)
-				})
-				
-		})	
+
 		
 		var featureC = this.g.selectAll("g")
 				.data(data)
@@ -75,14 +81,14 @@ class MapL{
 					 return d.idObj;
 				})
 				.style("fill",  function(d) {return that.color(d.idObj); })
-
+				
 		this.circleGroup =	featureC.selectAll("circle")
 					.data(function(d) {  return d.trajetoria; })
 					.enter()
 					.append("circle")
 					.style("stroke", "black")  
 					.style("opacity", 1) 
-					.attr("r", 7)
+					.attr("r", 3)
 					.on("mouseover", function(d) {
 						
 						var idObj = this.parentNode.getAttribute("idObj");
@@ -106,26 +112,26 @@ class MapL{
 				)
 
 	}
+
+	segments(values) {
+		
+	  var traj = values.trajetoria
+	  var i = 0, n = traj.length, segments = new Array(n - 1);
+	  while (++i < n) segments[i - 1] = [traj[i - 1], traj[i]];
+	  
+	  return segments;
+	}
+
 	createLines(){
 		var that = this;
-		  that.newSVG.append("linearGradient")				
-			    .attr("id", "line-gradient")			
-			    .attr("gradientUnits", "userSpaceOnUse")	
-			    .attr("x1", 0).attr("y1", 0)			
-			    .attr("x2", 0).attr("y2", 100)		
-			  .selectAll("stop")						
-			    .data([								
-			      {offset: "0%", color: "red"},		
-			      {offset: "40%", color: "red"},	
-			      {offset: "40%", color: "black"},		
-			      {offset: "62%", color: "black"},		
-			      {offset: "62%", color: "lawngreen"},	
-			      {offset: "100%", color: "lawngreen"}	
-			    ])					
-			  .enter().append("stop")			
-			    .attr("offset", function(d) { return d.offset; })	
-			    .attr("stop-color", function(d) { return d.color; });
-			    
+		this.domainSelected = [
+		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d.wind; }); }),
+		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d.wind }); })
+		];
+
+		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+        .domain(this.domainSelected);
+
 		this.toLine = d3.line()
 				.curve(d3.curveLinear)
 				.x(function(d){
@@ -134,17 +140,20 @@ class MapL{
 				.y(function(d){
 					return that.map.latLngToLayerPoint(d.LatLng).y
 				});
+		this.featureL = this.gLines.selectAll("g")
+      			.data(this.data)
+    			.enter().append("g");
 
-		this.featureL  = this.gLines.selectAll("path.line")
-				.data(this.data).enter()
-				.append("path")
-				.attr("class", "line")
-				.attr('d', function(d){  return that.toLine( d.trajetoria);}   )
-				.attr("fill", "none")
-		      	//.style("stroke", function(d) {debugger; return that.color(d.idObj) })
-		      	.attr("stroke-linejoin", "round")
-		      	.attr("stroke-linecap", "round")
-		      	.attr("stroke-width", 1.5);
+    	this.segments = this.featureL.selectAll("path")
+      				.data(that.segments)
+      			.enter().append("path")
+      				.attr("d", that.toLine)
+      				.style("stroke", function(d) {return that.	colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.attr("fill", "none")
+      				.attr("stroke-linejoin", "round")
+			      	.attr("stroke-linecap", "round")
+			      	.attr("stroke-width", 1.5);
+
 	}
 
 	update(cnt) {
@@ -158,7 +167,8 @@ class MapL{
 						pt.y +")";
 					}
 				)
-				this.featureL.attr('d', function(d){  return that.toLine( d.trajetoria);} )
+				this.segments.attr("d", that.toLine)
+      				
 	}
 
 	createLegend(){
@@ -190,6 +200,41 @@ class MapL{
 		this.legend.addTo(this.map);
 	}
 
+	createLegend2(){
+
+		this.legend2 = L.control({position: 'bottomleft'});
+		var that = this;
+		var color = d3.scaleQuantize()
+		  .domain(this.domainSelected)
+		  .range(d3.schemeRdYlGn['8'])
+
+
+		this.legend2.onAdd = function (map) {
+
+		    var div = L.DomUtil.create('div', 'info legend2'),
+		        grades = d3.schemeRdYlGn['8'],
+		        labels = [];
+
+		        div.id = "legend_id2"
+		        div.innerHTML = '<h4>Velocidade:</h4> '
+		       
+		    for (var i = 0; i < grades.length; i++) {
+		    	var aux = color.invertExtent(grades[i]);
+
+		        div.innerHTML +=
+		            '<i style="background:' + grades[i] + '"></i> ' +
+		             aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
+		    }
+		    
+
+		    //L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+		    return div;
+		};
+
+
+		this.legend2.addTo(this.map);
+	}
+
 	createInfo(){
 		var that = this;
 	
@@ -217,10 +262,10 @@ class MapL{
 		this.info.addTo(this.map);
 	}
 
-	setDomain(time){
+	setDomainRange(time){
 		var that = this;
-		this.circleGroup.style("opacity", 1);
-		this.featureL.style("opacity", 1);
+		this.circleGroup.style("opacity", 0.05);
+		this.segments.style("opacity", 0.05);
 		/*
 		var aux =        this.data.map(function(e){ e.trajetoria.forEach(function(c){c.id = e.idObj;} ) ; return e.trajetoria});
 		var  teste =  [].concat.apply([], aux)
@@ -230,12 +275,23 @@ class MapL{
   		.key(function(d) { return d.id; }).entries(this.Selected);
   		t.forEach(function(d){that.rename_attr(d,"key","idObj"); that.rename_attr(d,"values","trajetoria")})
 		*/
-  		this.circleGroup.filter(function(d){  return !(d.datahora >= time[0] && d.datahora <= time[1]) })
-  		.style("opacity", 0.05)
+  		this.circleGroup.filter(function(d){  return (d.datahora >= time[0] && d.datahora <= time[1]) })
+  		.style("opacity", 1)
 
-  		this.featureL.filter(function(d){  return !(d.startDate >= time[0] && d.endDate <= time[1]) })
-  		.style("opacity", 0.05)
+  		this.segments.filter(function(d){ return ( (d[0].datahora >= time[0] && d[0].datahora <= time[1]) && (d[1].datahora >= time[0] && d[1].datahora <= time[1])  ) })
+  		.style("opacity", 1)
 
+	}
+
+	setDomain(time, timeType){
+		var that = this;
+		this.circleGroup.style("opacity", 0.05);
+		this.segments.style("opacity", 0.05);
+		this.circleGroup.filter(function(d){  return ( d.datahora.toLocaleString("en-us", that.optionsDate[timeType] ) == time ) })
+  			.style("opacity", 1)
+  			console.log(time)
+  		this.segments.filter(function(d){ return ( (d[0].datahora.toLocaleString("en-us", that.optionsDate[timeType] ) == time  && d[1].datahora.toLocaleString("en-us", that.optionsDate[timeType] ) == time )  ) })
+  		.style("opacity", 1)
 	}
 
 	rename_attr(obj, old_name, new_name) {
