@@ -218,7 +218,7 @@ class LineChart{
 	    this.yAxis.scale(this.yScale);
 	    this.yAxisGroup.call(this.yAxis);
 	    
-	    var trans = d3.select("body").transition();
+
     
     // Make the changes
 	    var transition = this.canvas.transition().duration(750),
@@ -231,7 +231,7 @@ class LineChart{
 		  .text(this.selected)
 
 
-	    this.canvas
+	    this.newLines
 	        .selectAll(".line_chart")
 	        .data(this.data)
 	        .transition().duration(750)

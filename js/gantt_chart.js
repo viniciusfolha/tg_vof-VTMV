@@ -14,8 +14,7 @@ class GanttChart{
 	    	.attr("class", "gannt")
 	    	.attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
-	   // this.xScale = d3.scaleLinear().range([0, this.width]),
-    	this.xScale = d3.scaleTime().range([0, this.width]).clamp(true);
+	    this.xScale = d3.scaleTime().range([0, this.width]).clamp(true);
     	this.yScale = d3.scaleBand().range([0, this.height]),
     	
     	//this.zScale = d3.scaleOrdinal(d3.schemeCategory20b);
@@ -42,6 +41,7 @@ class GanttChart{
 	    this.opcoes;
 
 	   	this.toline ;
+	   	this.dataYear;
 
 	   	this.selected;
 		this.opcoes;
@@ -54,8 +54,9 @@ class GanttChart{
 
   		this.heightCont = 30;
   		this.xScaleCont = d3.scaleTime().range([0, this.width]);
-  		this.yScaleCont = d3.scaleBand().range([0, this.heightCont]);
+  		this.yScaleCont = d3.scaleLinear().range([this.heightCont,0]);
   		this.xAxisCont = d3.axisBottom(this.xScaleCont);
+  		this.yAxisCont = d3.axisLeft(this.yScaleCont);
 
 		this.brush = d3.brushX()
 		    .extent([[0, 0], [this.width, this.heightCont]])
@@ -72,6 +73,7 @@ class GanttChart{
 		    .attr("transform", "translate(" + 0 + "," + (this.height + 20) +")");
 
 		this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
+		this.dataYear;
 	}
 
 	setData(data,opcoes){
@@ -127,29 +129,48 @@ class GanttChart{
           .attr("fill", function(d) { return that.color(d.idObj); })
         
 
+	    this.dataYear = d3.nest()
+                  .key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
+                  .entries(this.data);
+       	console.log(this.dataYear);
+        var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
+        var dt1 = new Date(auxDateDomain[0])
+        var dt2 = new Date(auxDateDomain[1])
+        this.xScaleCont.domain([dt1,dt2]);
+        this.yScaleCont.domain([ 0 
+        							, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
+        
+        
 
+       
+        var area = d3.area()
+        	.defined(function(d) { return d; })
+        	.curve(d3.curveStep)
+		    .x(function(d) {  return that.xScaleCont( new Date (d.key)); })
+		    .y1(function(d) { return that.yScaleCont(d.values.length); });
+		area.y0(that.yScaleCont(0));
 
-        this.xScaleCont.domain(this.xScale.domain());
-        this.yScaleCont.domain(names);
-
-
-	    this.context.selectAll(".rect")
-	    	.data(this.data)
-	    	.enter().append("rect")
-        	.attr("y", function(d) { return that.yScaleCont(d.idObj); })
-        	.attr("height", that.yScaleCont.bandwidth())
-        	.attr("x", function(d) { return that.xScaleCont(d.startDate); })
-        	.attr("width", function(d) { return that.xScaleCont(d.endDate) - that.xScaleCont(d.startDate)})
-        	.attr("fill", function(d) { return that.color(d.idObj); })
+		
+	    this.context.append("g")
+	    	.append("path")
+	    	.datum(this.dataYear)
+	    	.attr("fill", "steelblue")
+			.attr("d", area);
         
         this.context.append("g")
 			.attr("class", "xAxis")
 			.attr("transform", "translate(0," + this.heightCont + ")")
 			.call(this.xAxisCont);
+		this.yAxisCont.tickValues(this.yScaleCont.domain());
+		this.context.append("g")
+			.attr("class", "yAxis")
+			.attr("transform", "translate(0,0)")
+			.call(this.yAxisCont);
 	    this.context.append("g")
 			.attr("class", "brush")
 			.call(this.brush)
 			.call(this.brush.move, this.xScale.range());
+		
 		this.canvas.append("rect")
 	      .attr("class", "zoom")
 	      .attr("width", this.width)
@@ -158,6 +179,11 @@ class GanttChart{
 	      .attr("pointer-events","all")
 	      .call(this.zoom);
 	      
+	    
+
+
+	
+
 		//this.do_grid();
 	    //this.update();
 
