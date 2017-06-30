@@ -154,6 +154,7 @@ class LineChart{
 	        option.text = this.opcoes[i];
 	        this.selectList.appendChild(option);
 	    }
+	    this.selectedIDS = data;
 	    this.selectList.onchange = this.changeComboBox.bind(that);
 
 	    this.data.forEach(function(d){d.trajetoria.forEach(function(e){
@@ -203,15 +204,16 @@ class LineChart{
   		this.selected   = thisCont.target.value;
 
   		this.yScale.domain([
-		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[thisCont.target.value]; }); }),
-		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[thisCont.target.value]; }); })
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[thisCont.target.value]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[thisCont.target.value]; }); })
 		]);
-
+  		var that = this;
 		var xScale = this.xScale;
 	 	var yScale = this.yScale;
 	 	this.toline = d3.line()
 	   		.x(function(d) {  return xScale(d.novadata); })
-		    .y(function(d) {  return yScale(d[thisCont.target.value]); });
+		    .y(function(d) {  return yScale(d[that.selected]); });
+
 		this.xAxis.scale(this.xScale);
 	    this.xAxisGroup.call(this.xAxis);
 
@@ -221,23 +223,41 @@ class LineChart{
 
     
     // Make the changes
-	    var transition = this.canvas.transition().duration(750),
-        delay = function(d, i) { return i * 50; };
-        var that = this;
-        
+    	this.newLines.remove();
+    	var myLines =
+	      this.lines
+	        .selectAll(".line_chart")
+	        .data(this.selectedIDS);
+	    
+	    myLines
+	      .exit()
+	      .remove();
+
+    	this.newLines = myLines
+	      .enter()
+	      .append("path")
+	      .merge(myLines)
+	      .attr("d", function(d) { return that.toline(d.trajetoria)})
+	      .style("stroke", function(d) { return that.zScale (d.idObj); });
+
+
+	   /*
+      	
 
 	    this.yAxisGroup
 		  .select("text")
 		  .text(this.selected)
 
+		this.newLines.selectAll(".line_chart").transition();
 
 	    this.newLines
-	        .selectAll(".line_chart")
-	        .data(this.data)
-	        .transition().duration(750)
-  			.attr("class", "line_chart")
+	        .selectAll("path")
+	        
+	        .duration(750)
+  			
 	      	.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      	.style("stroke", function(d) { return that.zScale (d.idObj); });
+		*/
   	}
 
   	update(){
@@ -325,19 +345,18 @@ class LineChart{
 	      .attr("d", function(d) { return that.toline(d.trajetoria)})
 	      .style("stroke", function(d) { return that.zScale (d.idObj); });
   }
-  setDomainRange(time, datafiltered){
-  	//this.xScale.domain(time);
-  	//this.xAxis.scale(this.xScale);
-  	//this.xAxisGroup.call(this.xAxis);
+  setDomainRange( datafiltered){
+
   	var that = this;
 
 		this.toline = d3.line()
-	   		.x(function(d) {  return that.xScale(d.novadata); })
+	   		.x(function(d) { d.novadata = new Date(d.datahora).setYear(2000);  return that.xScale(d.novadata); })
 		    .y(function(d) {  return that.yScale(d[that.selected]); });
-    datafiltered.forEach(function(d){d.trajetoria.forEach(function(e){
-	    	e.novadata = new Date(e.datahora);
-	    	e.novadata.setYear(2000);
-	    })})
+	
+	this.selectedIDS = datafiltered;
+
+
+
     this.newLines.remove();
     var myLines =
 	      this.lines
@@ -354,12 +373,7 @@ class LineChart{
 	      .merge(myLines)
 	      .attr("d", function(d) { return that.toline(d.trajetoria)})
 	      .style("stroke", function(d) { return that.zScale (d.idObj); });
-    /*
-    this.newLines.selectAll("path").data(datafiltered);  
-    this.newLines.exit().remove();
-    this.newLines.selectAll("path").data(datafiltered)
-  	.attr("d", function(d) { return that.toline(d.trajetoria)})
-  	*/
+
   	
   }
 }

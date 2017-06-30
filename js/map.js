@@ -49,18 +49,15 @@ class MapL{
 		this.idsObjs = d3.map(data, function(d){return d.idObj;}).keys()
 		this.data = data;
 		this.configData = configData;
+		
+		/*
 		this.createInfo();
 		this.createLegend();
-		data.forEach(function(d) {
-				d.trajetoria.forEach(function(e) {
-					e.LatLng = new L.LatLng(e.latitude,
-										e.longitude)
-				})
-				
-		})	
+		this.createCircle(data);
+		*/
 
 		this.createLines()
-		this.createCircle(data);
+		
 		this.createLegend2();
 		var that = this;
 		//this.map.on("viewreset", this.update.bind(that));
@@ -117,7 +114,7 @@ class MapL{
 		this.segments.style("opacity", 1);
 	}
 
-	segments(values) {
+	createsegments(values) {
 		
 	  var traj = values.trajetoria
 	  var i = 0, n = traj.length, segments = new Array(n - 1);
@@ -144,12 +141,12 @@ class MapL{
 				.y(function(d){
 					return that.map.latLngToLayerPoint(d.LatLng).y
 				});
-		this.featureL = this.gLines.selectAll("g")
+		this.featureL = this.gLines.selectAll(".lines_group")
       			.data(this.data)
-    			.enter().append("g");
+    			.enter().append("g").attr("class","lines_group" );
 
     	this.segments = this.featureL.selectAll("path")
-      				.data(that.segments)
+      				.data(that.createsegments)
       			.enter().append("path")
       				.attr("d", that.toLine)
       				.style("stroke", function(d) {return that.	colorScale( (d[0].wind + d[1].wind)/2 ) })
@@ -163,6 +160,7 @@ class MapL{
 	update(cnt) {
 		
 			var that = this;
+			/*
 			this.circleGroup.attr("transform", 
 					     function(d) {
 						 var pt = that.map.latLngToLayerPoint(d.LatLng);
@@ -171,6 +169,7 @@ class MapL{
 						pt.y +")";
 					}
 				)
+			*/		
 				this.segments.attr("d", that.toLine)
       				
 	}
@@ -266,24 +265,27 @@ class MapL{
 		this.info.addTo(this.map);
 	}
 
-	setDomainRange(time){
+	setDomainRange(datafiltered){
 		var that = this;
-		this.circleGroup.style("opacity", 0.05);
-		this.segments.style("opacity", 0.05);
-		/*
-		var aux =        this.data.map(function(e){ e.trajetoria.forEach(function(c){c.id = e.idObj;} ) ; return e.trajetoria});
-		var  teste =  [].concat.apply([], aux)
+		//this.circleGroup.remove();
+		this.featureL.remove();
+		
+		//var test = this.data.filter(function(d){return !( time[0] > d.dateDomain[1] || d.dateDomain[0] > time[1]   );  })
+		
+		this.featureL = this.gLines.selectAll(".lines_group")
+      			.data(datafiltered)
+    			.enter().append("g").attr("class","lines_group" );
 
-		this.Selected = teste.filter(function(d){ return (d.datahora > time[0] && d.datahora < time[1]) }) ;
-		var t =d3.nest()
-  		.key(function(d) { return d.id; }).entries(this.Selected);
-  		t.forEach(function(d){that.rename_attr(d,"key","idObj"); that.rename_attr(d,"values","trajetoria")})
-		*/
-  		this.circleGroup.filter(function(d){  return (d.datahora >= time[0] && d.datahora <= time[1]) })
-  		.style("opacity", 1)
+    	this.segments = this.featureL.selectAll("path")
+      				.data(that.createsegments)
+      			.enter().append("path")
+      				.attr("d", that.toLine)
+      				.style("stroke", function(d) {return that.colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.attr("fill", "none")
+      				.attr("stroke-linejoin", "round")
+			      	.attr("stroke-linecap", "round")
+			      	.attr("stroke-width", 1.5);
 
-  		this.segments.filter(function(d){ return ( (d[0].datahora >= time[0] && d[0].datahora <= time[1]) && (d[1].datahora >= time[0] && d[1].datahora <= time[1])  ) })
-  		.style("opacity", 1)
 
 	}
 

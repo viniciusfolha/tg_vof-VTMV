@@ -15,7 +15,7 @@ class GanttChart{
 	    	.attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
 	    this.xScale = d3.scaleTime().range([0, this.width]).clamp(true);
-    	this.yScale = d3.scaleBand().range([0, this.height]),
+    	this.yScale = d3.scaleTime().range([this.height,0 ]).clamp(true);
     	
     	//this.zScale = d3.scaleOrdinal(d3.schemeCategory20b);
 
@@ -24,7 +24,10 @@ class GanttChart{
 	    this.xAxisGroup = this.canvas.append("g")
 	      .attr("class","xAxis")
 	      .attr("transform","translate(0,"+this.height+")");
-	    this.xAxis = d3.axisBottom(this.xScale);
+
+	    this.xAxis = d3.axisBottom(this.xScale)
+	    .tickSize(16, 0)
+    	.tickFormat(d3.timeFormat("%B"));
 
 	    this.xAxisGroup.call(this.xAxis);
 
@@ -38,13 +41,12 @@ class GanttChart{
 	    this.yAxis = d3.axisLeft(this.yScale);
 
 	    this.yAxisGroup.call(this.yAxis);
-	    this.opcoes;
 
-	   	this.toline ;
-	   	this.dataYear;
 
-	   	this.selected;
-		this.opcoes;
+
+	    this.bigRects;
+	   	this.ganntyear;
+
 
   		this.selectList = document.createElement("select");
   		this.selectList.id = "comboboxLine";
@@ -55,7 +57,7 @@ class GanttChart{
   		this.heightCont = 30;
   		this.xScaleCont = d3.scaleTime().range([0, this.width]);
   		this.yScaleCont = d3.scaleLinear().range([this.heightCont,0]);
-  		this.xAxisCont = d3.axisBottom(this.xScaleCont);
+  		this.xAxisCont = d3.axisBottom(this.xScaleCont).ticks(20);
   		this.yAxisCont = d3.axisLeft(this.yScaleCont);
 
 		this.brush = d3.brushX()
@@ -74,102 +76,126 @@ class GanttChart{
 
 		this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
 		this.dataYear;
+		this.color;
 	}
 
 	setData(data,opcoes){
 	    this.data = data;
-	    this.opcoes = opcoes;
+	  
 
-	    this.selected = this.opcoes[0];
+	   
         var that = this;
-        var div = document.getElementById(this.id);
-        
-        div.appendChild(this.selectList);
-        
-	    for (var i = 0; i < this.opcoes.length; i++) {
-	        var option = document.createElement("option");
-	        option.value = this.opcoes[i];
-	        option.text = this.opcoes[i];
-	        this.selectList.appendChild(option);
-	    }
-	    //this.selectList.onchange = this.changeComboBox.bind(that);
-
-
-	    var names = data.map(function(d){return d.idObj});
 
 
 
-	    this.xScale.domain([
-		    d3.min(this.data, function(c) { c.startDate = d3.min(c.trajetoria, function(d) { return d.datahora; });   return c.startDate; }),
-		    d3.max(this.data, function(c) { c.endDate = d3.max(c.trajetoria, function(d) { return d.datahora; });  return c.endDate; })
-		]);
-
-	  	
-
-	    this.yScale.domain(names);
-
-	    //this.zScale.domain(this.data.map(function(c) { return c.idObj; }));
 	    
 
-	    this.xAxis = d3.axisBottom(this.xScale);
-
-	    this.xAxis.scale(this.xScale);
-	    this.yAxis.scale(this.yScale);
-
-		this.xAxisGroup.call(this.xAxis);
-		this.yAxisGroup.call(this.yAxis);	    
-		this.bargantt.selectAll(".bargantt")
-	      .data(this.data)
-          .enter().append("rect")
-          .attr("class", "rect_gannt")
-          .attr("y", function(d) { return that.yScale(d.idObj); })
-          .attr("height", that.yScale.bandwidth())
-          .attr("x", function(d) { return that.xScale(d.startDate); })
-          .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
-          .attr("fill", function(d) { return that.color(d.idObj); })
-        
 
 	    this.dataYear = d3.nest()
                   .key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
                   .entries(this.data);
-       	console.log(this.dataYear);
-        var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
+       	var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
+
         var dt1 = new Date(auxDateDomain[0])
-        var dt2 = new Date(auxDateDomain[1])
+
+        var dt2 = new Date(auxDateDomain[1],11,31);
+        var diffYear = Math.floor ( (dt2 - dt1) / 31536000000);
+
         this.xScaleCont.domain([dt1,dt2]);
         this.yScaleCont.domain([ 0 
         							, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
         
         
+		this.xScale.domain([new Date(2012, 0, 1), new Date(2012, 11, 31)]);
+
+	    this.yScale.domain(this.xScaleCont.domain());
+
+
+	    this.xAxis.scale(this.xScale);
+	    this.yAxis.scale(this.yScale);
+	    
+		this.xAxisGroup.call(this.xAxis);
+		this.xAxisGroup.selectAll(".tick text")
+    		.style("text-anchor", "start")
+    		.attr("x", 6)
+    		.attr("y", 6);
+
+		this.yAxisGroup.call(this.yAxis);
+		var t = this.height/diffYear  ;  
+
+		this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
+		this.bigRects = this.canvas.append("g").attr("class", "bigrect")
+		    .selectAll("rect")
+		   .data(this.dataYear)
+		   .enter()
+		   .append("rect")
+		   .attr("x", 0)
+		   .attr("y", function(d, i){
+		      return i*t ;
+		  })
+		   .attr("width", function(d){
+		      return that.width;
+		   })
+		   .attr("height",t )
+		   .attr("stroke", "none")
+		   .attr("fill", function(d,i){
+		   	
+		          return that.color(i);
+		    
+		   })
+		   .attr("opacity", 0.2);
+
+
+		this.ganntyear = this.bargantt.selectAll(".ganntyear")
+					.data(this.dataYear).enter().append("g").attr("class", "ganntyear");
+
+
+		this.ganntyear.selectAll("rect")
+	      .data(function(d){return d.values })
+          .enter().append("rect")
+          .attr("class", "rect_gannt")
+          .attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
+          .attr("height", function(d,i,j){ return t/j.length})
+          .attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
+          .attr("width", function(d) {var dtaux = new Date(d.dateDomain[0].getTime());
+          							  var dtaux1 = new Date(d.dateDomain[1].getTime());
+          							 return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
+          .attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
+        
 
        
         var area = d3.area()
         	.defined(function(d) { return d; })
-        	.curve(d3.curveStep)
-		    .x(function(d) {  return that.xScaleCont( new Date (d.key)); })
+        	.curve(d3.curveStepBefore)
+		    .x(function(d) { return that.xScaleCont( new Date (d.key,11,31)); })
 		    .y1(function(d) { return that.yScaleCont(d.values.length); });
 		area.y0(that.yScaleCont(0));
-
-		
+	
+		this.dataYear.unshift({key : (dt1.getFullYear()) , values: [0]} );
 	    this.context.append("g")
 	    	.append("path")
 	    	.datum(this.dataYear)
 	    	.attr("fill", "steelblue")
 			.attr("d", area);
-        
+      this.dataYear.shift();
+
         this.context.append("g")
 			.attr("class", "xAxis")
 			.attr("transform", "translate(0," + this.heightCont + ")")
 			.call(this.xAxisCont);
+
 		this.yAxisCont.tickValues(this.yScaleCont.domain());
+		
 		this.context.append("g")
 			.attr("class", "yAxis")
 			.attr("transform", "translate(0,0)")
 			.call(this.yAxisCont);
+				    	
+
 	    this.context.append("g")
 			.attr("class", "brush")
 			.call(this.brush)
-			.call(this.brush.move, this.xScale.range());
+			.call(this.brush.move, this.xScaleCont.range());
 		
 		this.canvas.append("rect")
 	      .attr("class", "zoom")
@@ -179,7 +205,7 @@ class GanttChart{
 	      .attr("pointer-events","all")
 	      .call(this.zoom);
 	      
-	    
+
 
 
 	
@@ -191,75 +217,189 @@ class GanttChart{
 
   	zoomed() {
 	  if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-	  
+	 
 	  var that = this;
 	  var t = d3.event.transform;
-	  this.xScale.domain(t.rescaleX(this.xScaleCont).domain());
-	  that.time = this.xScale.domain();
-	  var datafiltered = this.data.filter(function(d){return !(that.time[0] > d.endDate || d.startDate > that.time[1]) })
-	  var names = datafiltered.map(function(d){return d.idObj});
-	  this.yScale.domain(names);
+	  this.yScale.domain(t.rescaleX(this.xScaleCont).domain());
+	  that.time = this.yScale.domain();
+	  this.context.select(".brush").call(this.brush.move, this.xScale.range().map(t.invertX, t));
 
-	   
+	  
+
+		
+		var datafiltered = this.dataYear.filter(function(d){ var dtaux = new Date(d.key,11,31); return (that.time[0] <=  dtaux && that.time[1] >= dtaux)  })
+		datafiltered.forEach(function(d){
+								
+								d.value = d.values.filter(function(e){ return !(that.time[0] > e.dateDomain[1] || e.dateDomain[0] > that.time[1]) ; })
+										}
+							);
+				
 	  this.yAxis.scale(this.yScale);
 
-	  this.yAxisGroup.call(this.yAxis);	    
+	  this.yAxisGroup.call(this.yAxis);	  
+
+	  this.bigRects.remove();
 
 
-      this.bargantt.selectAll(".bargantt")
-  		.data(datafiltered);
 
-      this.bargantt.exit().remove()
+        var dt1 = this.yScale.domain()[0];
+
+        var dt2 = this.yScale.domain()[1];
+
+        dt1.setUTCMonth(0,1);
+        dt2.setUTCMonth(11,31);
+        var diffYear = Math.ceil ( ((dt2 - dt1) / 31536000000));
+        var t = this.height/diffYear  ; 
+
+        this.bigRects = this.canvas.selectAll(".bigrect")
+        
+		this.bigRects = this.bigRects.selectAll("rect")
+		   .data(datafiltered)
+		   .enter()
+		   .append("rect")
+		   .attr("x", 0)
+		   .attr("y", function(d, i){
+		      return i*t ;
+		  })
+		   .attr("width", function(d){
+		      return that.width;
+		   })
+		   .attr("height",t )
+		   .attr("stroke", "none")
+		   .attr("fill", function(d,i){
+		   	
+		          return that.color(i);
+		    
+		   })
+		   .attr("opacity", 0.2);
 
 
-	  this.bargantt.selectAll(".rect_gannt")
-	  	  .attr("y", function(d) { return that.yScale(d.idObj); })
-          .attr("height", that.yScale.bandwidth())
-          .attr("x", function(d) { return that.xScale(d.startDate); })
-          .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
-          .attr("fill", function(d) { return that.color(d.idObj); });
-	  this.xAxisGroup.call(this.xAxis);
-	  this.context.select(".brush").call(this.brush.move, this.xScale.range().map(t.invertX, t));
-	  that.time = this.xScale.domain();
+
+		this.ganntyear.remove();
+
+		this.ganntyear = this.bargantt.selectAll(".ganntyear")
+					.data(datafiltered).enter().append("g").attr("class", "ganntyear");;
+		
+		
+		//Melhorar
+		this.ganntyear.selectAll("rect")
+	      .data(function(d){ return d.value })
+          .enter().append("rect")
+          .attr("class", "rect_gannt")
+          .attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
+          .attr("height", function(d,i,j){ return t/j.length})
+          .attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
+          .attr("width", function(d) {var dtaux = new Date(d.dateDomain[0].getTime());
+          							  var dtaux1 = new Date(d.dateDomain[1].getTime());
+          							 return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
+          .attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
+
+        var auxDatafilt = this.data.filter(function(d){var val = ( that.time[0] > d.dateDomain[1] || d.dateDomain[0] > that.time[1]   ); 
+	  													 return !val ;});
+
 	  if(this.dispatcher)
-	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: datafiltered})
+	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
+	
 	}
 
 
 	brushed() {
-		if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoo
-		var that = this;
-		var s = d3.event.selection || this.xScaleCont.range();
-		this.xScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
+		if(this.dispatcher){	
+			if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoo
+			var that = this;
+			 
+			var s = d3.event.selection || this.xScaleCont.range();
 
-		that.time = this.xScale.domain();
-		var datafiltered = this.data.filter(function(d){return !(that.time[0] > d.endDate || d.startDate > that.time[1]) })
-		var names = datafiltered.map(function(d){return d.idObj});
-		this.yScale.domain(names);
+			this.yScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
+			
+			//this.xScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
+			
+			that.time = this.yScale.domain();
+			
 
-	   
-	  	this.yAxis.scale(this.yScale);
+			
+			
+			var datafiltered = this.dataYear.filter(function(d){ var dtaux = new Date(d.key,11,31); return (that.time[0] <=  dtaux && that.time[1] >= dtaux)  })
+			datafiltered.forEach(function(d){
+									
+									d.value = d.values.filter(function(e){ return !(that.time[0] > e.dateDomain[1] || e.dateDomain[0] > that.time[1]) ; })
+											}
 
-		this.yAxisGroup.call(this.yAxis);	    
+								);
+					
+			
+			
 
 
-        this.bargantt.selectAll(".bargantt")
-  		.data(datafiltered);
+		  	this.yAxis.scale(this.yScale);
 
-        this.bargantt.exit().remove()
-        
+			this.yAxisGroup.call(this.yAxis);
 
-  		this.bargantt  		
-  		.selectAll(".rect_gannt")  
-		  .attr("y", function(d) { return that.yScale(d.idObj); })
-          .attr("height", that.yScale.bandwidth())
-          .attr("x", function(d) { return that.xScale(d.startDate); })
-          .attr("width", function(d) { return that.xScale(d.endDate) - that.xScale(d.startDate)})
-          .attr("fill", function(d) { return that.color(d.idObj); })
-  		this.xAxisGroup.call(this.xAxis);
-  		that.time = this.xScale.domain();
-  		if(this.dispatcher)
-	    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: datafiltered})
+			this.bigRects.remove();
+
+
+
+	        var dt1 = this.yScale.domain()[0];
+
+	        var dt2 = this.yScale.domain()[1];
+
+	        dt1.setUTCMonth(0,1);
+	        dt2.setUTCMonth(11,31);
+	        var diffYear = Math.ceil ( ((dt2 - dt1) / 31536000000));
+	        var t = this.height/diffYear  ; 
+
+	        this.bigRects = this.canvas.selectAll(".bigrect")
+	        
+			this.bigRects = this.bigRects.selectAll("rect")
+			   .data(datafiltered)
+			   .enter()
+			   .append("rect")
+			   .attr("x", 0)
+			   .attr("y", function(d, i){
+			      return i*t ;
+			  })
+			   .attr("width", function(d){
+			      return that.width;
+			   })
+			   .attr("height",t )
+			   .attr("stroke", "none")
+			   .attr("fill", function(d,i){
+			   	
+			          return that.color(i);
+			    
+			   })
+			   .attr("opacity", 0.2);
+
+
+
+			this.ganntyear.remove();
+
+			this.ganntyear = this.bargantt.selectAll(".ganntyear")
+						.data(datafiltered).enter().append("g").attr("class", "ganntyear");;
+			
+			//this.ganntyear.exit().remove();
+
+			this.ganntyear.selectAll("rect")
+		      .data(function(d){ return d.value })
+	          .enter().append("rect")
+	          .attr("class", "rect_gannt")
+	          .attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
+	          .attr("height", function(d,i,j){ return t/j.length})
+	          .attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
+	          .attr("width", function(d) {var dtaux = new Date(d.dateDomain[0].getTime());
+	          							  var dtaux1 = new Date(d.dateDomain[1].getTime());
+	          							 return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
+	          .attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
+
+
+			
+	  		that.time = this.yScale.domain();
+	  		var auxDatafilt = this.data.filter(function(d){var val = ( that.time[0] > d.dateDomain[1] || d.dateDomain[0] > that.time[1]   ); 
+	  													 return !val ;});
+	  		
+		    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
+
+		}
 	
 	}
 

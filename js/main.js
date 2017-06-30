@@ -25,7 +25,11 @@ function readData(){
 			if(configData.datahora == "default"){
 				var formatT = d3.timeParse ('%Y%m%d-%H%M')
 				data.forEach(function(d){
-					d.trajetoria.forEach(function(e){e.datahora = formatT(e.datahora); })
+					d.trajetoria.forEach(function(e){e.datahora = formatT(e.datahora); 
+													e.LatLng = new L.LatLng(e.latitude, e.longitude);
+								});
+					
+					d.dateDomain = d3.extent(d.trajetoria.map(function(c){return c.datahora}));  
 				})
 			}
 		
@@ -98,8 +102,9 @@ function readData(){
 	    	myDispatcher.on("selectionChanged", function(){
 				
 			    if(this.callerID === "ganttchart"){
-					line_chart.setDomainRange(this.time, this.datafiltered);
-					map.setDomainRange(this.time);
+
+					line_chart.setDomainRange(this.datafiltered);
+					map.setDomainRange(this.datafiltered);
 				}
 			    if(this.callerID === "barchart1"){
 					if(!this.returnB){
