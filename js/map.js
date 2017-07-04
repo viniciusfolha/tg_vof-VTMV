@@ -59,13 +59,32 @@ class MapL{
 
 		this.createLines()
 		
-		this.createLegend2();
+		
 		var that = this;
 		//this.map.on("viewreset", this.update.bind(that));
 		this.map.on("moveend", this.update.bind(that));
+		var comboBox = this.createComboBox();
+		comboBox._container.firstChild.addEventListener("change", this.changeComboBox.bind(that));
+		this.createLegend2();
 		
 	}
+	changeComboBox(select){
+		this.Selected = select.target.value;
 
+		var that = this;
+		
+		
+		this.domainSelected = [
+		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[select.target.value]; }); }),
+		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[select.target.value] }); })
+		];
+		
+		this.colorScale.domain(this.domainSelected);
+		this.segments.style("stroke", function(d) {return that.colorScale( (d[0][select.target.value] + d[1][select.target.value])/2 ) })
+		this.legend2.remove();
+		this.createLegend2();
+		
+	}
 	createCircle(data){
 		var that = this;
 
@@ -125,7 +144,7 @@ class MapL{
       				.data(that.createsegments)
       			.enter().append("path")
       				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
       				.attr("fill", "none")
       				.attr("stroke-linejoin", "round")
 			      	.attr("stroke-linecap", "round")
@@ -145,9 +164,10 @@ class MapL{
 
 	createLines(){
 		var that = this;
+		this.Selected = this.configData.nomes[0];
 		this.domainSelected = [
-		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d.wind; }); }),
-		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d.wind }); })
+		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
 
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
@@ -169,7 +189,7 @@ class MapL{
       				.data(that.createsegments)
       			.enter().append("path")
       				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
       				.attr("fill", "none")
       				.attr("stroke-linejoin", "round")
 			      	.attr("stroke-linecap", "round")
@@ -222,8 +242,52 @@ class MapL{
 
 		this.legend.addTo(this.map);
 	}
+	createComboBox(){
+		var that = this;
+		var legend = L.control({position: 'bottomleft'});
+		legend.onAdd = function (map) {
+		    var div = L.DomUtil.create('div', 'comboBox');
+		    
+		    var aux;
+		    for ( var x in that.configData.nomes){
+		     	aux += '<option>' + that.configData.nomes[x] + '</option>';
+		     } 
+		     div.innerHTML = '<select id="comboboxMap">' + aux + '</select>';
+		     
+		    div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
+		    return div;
+		};
+		legend.addTo(this.map);
+		return legend;
+		/*this.legend = L.control({position: 'bottomright'});
+		var that = this;
+		this.legend.onAdd = function (map) {
 
+		    var div = L.DomUtil.create('div', 'info legend'),
+		        grades = [],
+		        labels = [];
+
+		        div.id = "legend_id"
+		        div.innerHTML = '<h4>Id Obj:</h4> '
+		        
+		    for (var i = 0; i < that.idsObjs.length; i++) {
+
+		        div.innerHTML +=
+		            '<i style="background:' + that.color(that.idsObjs[i]) + '"></i> ' +
+		            that.idsObjs[i] + (that.idsObjs[i+1] ? '<br>' : '');
+		    }
+		    
+
+		    L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+		    return div;
+		};
+
+
+		this.legend.addTo(this.map);
+		*/
+	}
 	createLegend2(){
+
 
 		this.legend2 = L.control({position: 'bottomleft'});
 		var that = this;
@@ -239,7 +303,7 @@ class MapL{
 		        labels = [];
 
 		        div.id = "legend_id2"
-		        div.innerHTML = '<h4>Velocidade:</h4> '
+		        div.innerHTML = '<h4>'+ that.Selected + ':</h4> '
 		       
 		    for (var i = 0; i < grades.length; i++) {
 		    	var aux = color.invertExtent(grades[i]);
@@ -287,10 +351,10 @@ class MapL{
 
 	setDomainRange(datafiltered){
 		var that = this;
-		//this.circleGroup.remove();
+
 		this.featureL.remove();
 		
-		//var test = this.data.filter(function(d){return !( time[0] > d.dateDomain[1] || d.dateDomain[0] > time[1]   );  })
+
 		
 		this.featureL = this.gLines.selectAll(".lines_group")
       			.data(datafiltered)
@@ -300,7 +364,7 @@ class MapL{
       				.data(that.createsegments)
       			.enter().append("path")
       				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
       				.attr("fill", "none")
       				.attr("stroke-linejoin", "round")
 			      	.attr("stroke-linecap", "round")
@@ -309,16 +373,6 @@ class MapL{
 
 	}
 
-	setDomain(time, timeType){
-		var that = this;
-		this.circleGroup.style("opacity", 0.05);
-		this.segments.style("opacity", 0.05);
-		this.circleGroup.filter(function(d){  return ( d.datahora.toLocaleString("en-us", that.optionsDate[timeType] ) == time ) })
-  			.style("opacity", 1)
-  			console.log(time)
-  		this.segments.filter(function(d){ return ( (d[0].datahora.toLocaleString("en-us", that.optionsDate[timeType] ) == time  && d[1].datahora.toLocaleString("en-us", that.optionsDate[timeType] ) == time )  ) })
-  		.style("opacity", 1)
-	}
 
 	rename_attr(obj, old_name, new_name) {
       if (obj.hasOwnProperty(old_name)) {
