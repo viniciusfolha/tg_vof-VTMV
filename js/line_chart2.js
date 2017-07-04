@@ -78,6 +78,9 @@ class LineChart{
 
     	//
   		this.selectList = document.createElement("select");
+  		this.selectList.style.position = "absolute";
+	
+  		this.selectList.style = "position: absolute; top: 10px;right: 5px;";
   		this.selectList.id = "comboboxLine";
 
 

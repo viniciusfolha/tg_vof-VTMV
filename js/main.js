@@ -25,56 +25,110 @@ function readData(){
 			if(configData.datahora == "default"){
 				var formatT = d3.timeParse ('%Y%m%d-%H%M')
 				data.forEach(function(d){
-					d.trajetoria.forEach(function(e){e.datahora = formatT(e.datahora); 
+					configData.nomes.forEach(function(e,i){
+						d["mean_".concat(e)] = 0;
+					})
+					d.trajetoria.forEach(function(e){ e.datahora = formatT(e.datahora); 
 													e.LatLng = new L.LatLng(e.latitude, e.longitude);
+													configData.nomes.forEach(function(z,i){
+														d["mean_".concat(z)] += e[z] ; 
+													});
+
 								});
+					/*configData.nomes.forEach(function(e,i){
+						d["mean_".concat(e)] = d3.sum(d.trajetoria.map(function(z){return z[e]}) ) / d.trajetoria.length;
+					})*/
+					configData.nomes.forEach(function(e,i){
+						d["mean_".concat(e)] /= d.trajetoria.length;
+					})
 					
+
+					d.dateDomain = d3.extent(d.trajetoria.map(function(c){return c.datahora}));  
+				})
+			}else{
+				data.forEach(function(d){
+					configData.nomes.forEach(function(e,i){
+						d["mean_".concat(e)] = 0;
+					})
+					d.trajetoria.forEach(function(e){
+													e.LatLng = new L.LatLng(e.latitude, e.longitude);
+													configData.nomes.forEach(function(z,i){
+														d["mean_".concat(z)] += e[z] ; 
+													});
+
+								});
+					/*configData.nomes.forEach(function(e,i){
+						d["mean_".concat(e)] = d3.sum(d.trajetoria.map(function(z){return z[e]}) ) / d.trajetoria.length;
+					})*/
+					configData.nomes.forEach(function(e,i){
+						d["mean_".concat(e)] /= d.trajetoria.length;
+					})
+					
+
 					d.dateDomain = d3.extent(d.trajetoria.map(function(c){return c.datahora}));  
 				})
 			}
+
 		
 			
 			var color  = d3.scaleOrdinal(d3.schemeCategory20b);
 
-			var map = new MapL("map",600,400, color);
 
+			var div = document.createElement("div");
+			div.style.width = 1200 +'px';
+			div.style.height = 600 + 'px';
+			div.style.position = "relative";
+			div.style.display =  "inline";
+			div.id = "mapMain";
+			div.style.float='left';
 			var divM =  document.createElement("div");
 			divM.style.width = 100 +'%';
 			divM.id = "divMain";
-			
 			document.body.appendChild(divM);
+			divM.appendChild(div);
+			var map = new MapL("map",1200,600, color, div);
+			
+
+			var divG =  document.createElement("div");
+			divG.style.height = 600 + 'px';
+			divG.style.position = "relative";
+			divG.style.display =  "inline";
+			divG.style.height = 600 + 'px';
+			divG.id = "divGraph";
+			divG.style.float='left';
+			divM.appendChild(divG);
 
 			var div = document.createElement("div");
 			div.style.width = 600 +'px';
-			div.style.height = 500 + 'px';
+			div.style.height = 300 + 'px';
 			div.id = "barchart1";
-			div.style.position = "relative";
-			div.style.display =  "inline";
-			divM.appendChild(div);
+
+			divG.appendChild(div);
 
 			var mySVG = d3.select("#barchart1")
 	    				.append("svg")
 	    				.attr("width","500")
-	    				.attr("height","400");
+	    				.attr("height","300");
 
-			var bar_chart = new BarChart("barchart1",mySVG,0,20,400,300);
+			var bar_chart = new BarChart("barchart1",mySVG,0,10,400,278);
 
 
 			var div = document.createElement("div");
 			div.style.width = 600 +'px';
-			div.style.height = 500 + 'px';
+			div.style.height = 300 + 'px';
 			div.id = "linechart1";
+						div.style.position = "absolute";
 			div.style.display =  "inline";
-			divM.appendChild(div);
+			divG.appendChild(div);
 
 			var mySVG2 = d3.select("#linechart1")
 	    				.append("svg")
 	    				.attr("width","500")
-	    				.attr("height","400");
+	    				.attr("height","300");
 
 
 
-			var line_chart = new LineChart("linechart1",mySVG2,0,50,400,300);
+			var line_chart = new LineChart("linechart1",mySVG2,0,10,450,300);
 
 			map.setData(data, configData);
 			bar_chart.setData(data,configData.nomes);
@@ -108,8 +162,8 @@ function readData(){
 				}
 			    if(this.callerID === "barchart1"){
 					if(!this.returnB){
-						map.setDomain(this.time, this.timeType);
-						line_chart.setDomainRange(this.time, this.datafiltered);
+						map.setDomainRange(this.datafiltered);
+						line_chart.setDomainRange(this.datafiltered);
 					}else{
 						map.reset();
 						line_chart.reset();

@@ -1,5 +1,5 @@
 class MapL{
-	constructor(id, width, height, color){
+	constructor(id, width, height, color, divM){
 		var that = this;
 
 		this.color = color;
@@ -7,7 +7,8 @@ class MapL{
 		div.style.width = width +'px';
 		div.style.height = height + 'px';
 		div.id = id;
-		document.body.appendChild(div);
+		
+		divM.appendChild(div);
 
 		this.map = L.map(id).setView([-22.906323, -43.182386], 12);
 		var mapLink =  '<a href="http://openstreetmap.org">OpenStreetMap</a>';
@@ -110,8 +111,27 @@ class MapL{
 
 	}
 	reset(){
-		this.circleGroup.style("opacity", 1);
-		this.segments.style("opacity", 1);
+		var that = this;
+		//this.circleGroup.remove();
+		this.featureL.remove();
+		
+		//var test = this.data.filter(function(d){return !( time[0] > d.dateDomain[1] || d.dateDomain[0] > time[1]   );  })
+		
+		this.featureL = this.gLines.selectAll(".lines_group")
+      			.data(this.data)
+    			.enter().append("g").attr("class","lines_group" );
+
+    	this.segments = this.featureL.selectAll("path")
+      				.data(that.createsegments)
+      			.enter().append("path")
+      				.attr("d", that.toLine)
+      				.style("stroke", function(d) {return that.colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.attr("fill", "none")
+      				.attr("stroke-linejoin", "round")
+			      	.attr("stroke-linecap", "round")
+			      	.attr("stroke-width", 1.5);
+
+		
 	}
 
 	createsegments(values) {
@@ -149,7 +169,7 @@ class MapL{
       				.data(that.createsegments)
       			.enter().append("path")
       				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.	colorScale( (d[0].wind + d[1].wind)/2 ) })
+      				.style("stroke", function(d) {return that.colorScale( (d[0].wind + d[1].wind)/2 ) })
       				.attr("fill", "none")
       				.attr("stroke-linejoin", "round")
 			      	.attr("stroke-linecap", "round")
