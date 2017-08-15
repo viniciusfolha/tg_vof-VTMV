@@ -351,12 +351,17 @@ class LineChart{
   setDomainRange( datafiltered){
 
   	var that = this;
-
+	this.selectedIDS = datafiltered;
+	
+  	this.yScale.domain([
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selected]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selected]; }); })
+	]);
 		this.toline = d3.line()
 	   		.x(function(d) { d.novadata = new Date(d.datahora).setYear(2000);  return that.xScale(d.novadata); })
 		    .y(function(d) {  return that.yScale(d[that.selected]); });
 	
-	this.selectedIDS = datafiltered;
+	
 
 
 

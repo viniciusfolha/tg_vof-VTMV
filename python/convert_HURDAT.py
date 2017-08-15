@@ -4,7 +4,7 @@ with open('../data/hurdat2-1851-2016-041117.txt') as infile:
 	novo = []
 	firstline = infile.readline()
 	t = 0
-	while t<=100:
+	while firstline:
 		t+=1	
 		print firstline
 		hur =  [x.strip() for x in firstline.split(',')]

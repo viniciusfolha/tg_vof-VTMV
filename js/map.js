@@ -38,6 +38,7 @@ class MapL{
 		this.featureL;
 		this.toLine;
 		this.Selected;
+		this.selectedIDS = [];
 		this.colorScale;
 		this.segments;
 		this.domainSelected;
@@ -75,8 +76,8 @@ class MapL{
 		
 		
 		this.domainSelected = [
-		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[select.target.value]; }); }),
-		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[select.target.value] }); })
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[select.target.value]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[select.target.value] }); })
 		];
 		
 		this.colorScale.domain(this.domainSelected);
@@ -351,10 +352,15 @@ class MapL{
 
 	setDomainRange(datafiltered){
 		var that = this;
-
+		this.selectedIDS = datafiltered;
 		this.featureL.remove();
 		
+		this.domainSelected = [
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+		];
 
+		this.colorScale.domain(this.domainSelected);
 		
 		this.featureL = this.gLines.selectAll(".lines_group")
       			.data(datafiltered)
@@ -370,6 +376,10 @@ class MapL{
 			      	.attr("stroke-linecap", "round")
 			      	.attr("stroke-width", 1.5);
 
+
+
+		this.legend2.remove();
+		this.createLegend2();
 
 	}
 

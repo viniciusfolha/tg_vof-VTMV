@@ -69,7 +69,7 @@ function readData(){
 				})
 			}
 
-		
+			data = data.filter(function(d){return d.trajetoria[0].datahora.getFullYear() >= 1970});
 			
 			var color  = d3.scaleOrdinal(d3.schemeCategory20b);
 

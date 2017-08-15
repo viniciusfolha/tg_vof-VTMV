@@ -316,9 +316,14 @@ class GanttChart{
 			
 			that.time = this.yScale.domain();
 			
-
+			var auxDatafilt = this.data.filter(function(d){var val = ( that.time[0] > d.dateDomain[1] || d.dateDomain[0] > that.time[1]   ); 
+	  													 return !val ;});
 			
+			var datafiltered = d3.nest()
+                  .key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
+                  .entries(auxDatafilt);
 			
+			/*
 			var datafiltered = this.dataYear.filter(function(d){ var dtaux = new Date(d.key,11,31); return (that.time[0] <=  dtaux && that.time[1] >= dtaux)  })
 			datafiltered.forEach(function(d){
 									
@@ -326,7 +331,7 @@ class GanttChart{
 											}
 
 								);
-					
+			*/		
 			
 			
 
@@ -380,7 +385,7 @@ class GanttChart{
 			//this.ganntyear.exit().remove();
 
 			this.ganntyear.selectAll("rect")
-		      .data(function(d){ return d.value })
+		      .data(function(d){ return d.values })
 	          .enter().append("rect")
 	          .attr("class", "rect_gannt")
 	          .attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
