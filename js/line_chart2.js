@@ -354,9 +354,7 @@ class LineChart{
 	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
 	this.myLines.exit().remove();
 	this.myLines.enter().append("path");
-	this.myLines.transition()
-                        .duration(50)
-          				.attr("d", function(d) { return that.toline(d.trajetoria)})
+	this.myLines.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
 
   	

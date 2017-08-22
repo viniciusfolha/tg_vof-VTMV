@@ -361,8 +361,7 @@ class GanttChart{
 	        this.bigRects.enter().append("rect").attr("x", 0);
 	        			   
 
-	        this.bigRects.transition()
-                        .duration(50)
+	        this.bigRects
                            .attr("x", 0)
 						   .attr("y", function(d, i){
 						      		return i*t ;
@@ -387,7 +386,6 @@ class GanttChart{
 			
 	        
 	        this.lev2
-			   .transition().duration(50)
 	          .attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
 	          .attr("height", function(d,i,j){ return t/j.length})
 	          .attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
