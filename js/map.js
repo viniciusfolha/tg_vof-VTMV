@@ -51,7 +51,7 @@ class MapL{
 		this.idsObjs = d3.map(data, function(d){return d.idObj;}).keys()
 		this.data = data;
 		this.configData = configData;
-		
+		this.selectedIDS = data;
 		/*
 		this.createInfo();
 		this.createLegend();
@@ -71,7 +71,7 @@ class MapL{
 	}
 	changeComboBox(select){
 		this.Selected = select.target.value;
-
+		debugger;
 		var that = this;
 		
 		

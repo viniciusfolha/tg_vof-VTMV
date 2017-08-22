@@ -294,6 +294,7 @@ class GanttChart{
           							 return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
           .attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
 
+
         var auxDatafilt = this.data.filter(function(d){var val = ( that.time[0] > d.dateDomain[1] || d.dateDomain[0] > that.time[1]   ); 
 	  													 return !val ;});
 
@@ -304,8 +305,8 @@ class GanttChart{
 
 
 	brushed() {
-		if(this.dispatcher){	
-			if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoo
+		if(this.dispatcher){
+			if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom" && d3.event.sourceEvent.type === "start") return; // ignore brush-by-zoo
 			var that = this;
 			 
 			var s = d3.event.selection || this.xScaleCont.range();
@@ -313,12 +314,13 @@ class GanttChart{
 			this.yScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
 			
 			//this.xScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
-			
+
 			that.time = this.yScale.domain();
 			
-			var auxDatafilt = this.data.filter(function(d){var val = ( that.time[0] > d.dateDomain[1] || d.dateDomain[0] > that.time[1]   ); 
-	  													 return !val ;});
-			
+
+	        var auxDatafilt = this.data.filter(function(d){var val = ( that.time[1] < d.dateDomain[0] || d.dateDomain[1] < that.time[0]   ); 
+		  													 return !val ;});
+	     
 			var datafiltered = d3.nest()
                   .key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
                   .entries(auxDatafilt);
@@ -340,7 +342,7 @@ class GanttChart{
 
 			this.yAxisGroup.call(this.yAxis);
 
-			this.bigRects.remove();
+			//this.bigRects.remove();
 
 
 
@@ -350,44 +352,42 @@ class GanttChart{
 
 	        dt1.setUTCMonth(0,1);
 	        dt2.setUTCMonth(11,31);
-	        var diffYear = Math.ceil ( ((dt2 - dt1) / 31536000000));
-	        var t = this.height/diffYear  ; 
+	       // var diffYear = Math.ceil ( ((dt2 - dt1) / 31536000000));
+	        var diffYear = datafiltered.length;
+	        var t = this.height/diffYear; 
 
-	        this.bigRects = this.canvas.selectAll(".bigrect")
-	        
-			this.bigRects = this.bigRects.selectAll("rect")
-			   .data(datafiltered)
-			   .enter()
-			   .append("rect")
-			   .attr("x", 0)
-			   .attr("y", function(d, i){
-			      return i*t ;
-			  })
-			   .attr("width", function(d){
-			      return that.width;
-			   })
-			   .attr("height",t )
-			   .attr("stroke", "none")
-			   .attr("fill", function(d,i){
-			   	
-			          return that.color(i);
-			    
-			   })
-			   .attr("opacity", 0.2);
+	        this.bigRects = this.canvas.select(".bigrect").selectAll("rect").data(datafiltered);
+	        this.bigRects.exit().remove();
+	        this.bigRects.enter().append("rect").attr("x", 0);
+	        			   
 
+	        this.bigRects.transition()
+                        .duration(50)
+                           .attr("x", 0)
+						   .attr("y", function(d, i){
+						      		return i*t ;
+						  		})
+						   .attr("width", function(d){
+						      		return that.width;
+						   		})
+						   .attr("height",t )
+						   .attr("stroke", "none")
+						   .attr("fill", function(d,i){
+						          return that.color(i);
+						   		})
+						   .attr("opacity", 0.2);
 
+			this.ganntyear  = this.canvas.select(".bargantt").selectAll(".ganntyear").data(datafiltered);
+			this.ganntyear.exit().remove();
+			this.ganntyear.enter().append("g").attr("class", "ganntyear");
+			this.lev2 = this.ganntyear.selectAll("rect").data(function(d){ return d.values });
+			this.lev2.enter().append("rect")
+			this.lev2.exit().remove();
 
-			this.ganntyear.remove();
-
-			this.ganntyear = this.bargantt.selectAll(".ganntyear")
-						.data(datafiltered).enter().append("g").attr("class", "ganntyear");;
 			
-			//this.ganntyear.exit().remove();
-
-			this.ganntyear.selectAll("rect")
-		      .data(function(d){ return d.values })
-	          .enter().append("rect")
-	          .attr("class", "rect_gannt")
+	        
+	        this.lev2
+			   .transition().duration(50)
 	          .attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
 	          .attr("height", function(d,i,j){ return t/j.length})
 	          .attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
@@ -397,12 +397,7 @@ class GanttChart{
 	          .attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
 
 
-			
-	  		that.time = this.yScale.domain();
-	  		var auxDatafilt = this.data.filter(function(d){var val = ( that.time[0] > d.dateDomain[1] || d.dateDomain[0] > that.time[1]   ); 
-	  													 return !val ;});
-	  		
-		    this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
+		   this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
 
 		}
 	

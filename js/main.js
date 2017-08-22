@@ -158,7 +158,7 @@ function readData(){
 			    if(this.callerID === "ganttchart"){
 
 					line_chart.setDomainRange(this.datafiltered);
-					map.setDomainRange(this.datafiltered);
+					//map.setDomainRange(this.datafiltered);
 				}
 			    if(this.callerID === "barchart1"){
 					if(!this.returnB){

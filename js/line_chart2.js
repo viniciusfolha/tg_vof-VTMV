@@ -293,10 +293,6 @@ class LineChart{
 	      .merge(myLines)
 	      .attr("d", function(d) { return that.toline(d.trajetoria)})
 	      .style("stroke", function(d) { return that.zScale (d.idObj); });
-	    
-
-
-
 
 	    this.xAxisGroup
 		   	.append("text")             
@@ -331,22 +327,13 @@ class LineChart{
   }
   reset(){
   	var that = this;
-  	this.newLines.remove();
-    var myLines =
-	      this.lines
-	        .selectAll(".line_chart")
-	        .data(this.data);
-	    
-	    myLines
-	      .exit()
-	      .remove();
-
-    	    this.newLines = myLines
-	      .enter()
-	      .append("path")
-	      .merge(myLines)
-	      .attr("d", function(d) { return that.toline(d.trajetoria)})
-	      .style("stroke", function(d) { return that.zScale (d.idObj); });
+	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.data);
+	this.myLines.exit().remove();
+	this.myLines.enter().append("path");
+	this.myLines.transition()
+                        .duration(50)
+          				.attr("d", function(d) { return that.toline(d.trajetoria)})
+	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
   }
   setDomainRange( datafiltered){
 
@@ -364,23 +351,13 @@ class LineChart{
 	
 
 
-
-    this.newLines.remove();
-    var myLines =
-	      this.lines
-	        .selectAll(".line_chart")
-	        .data(datafiltered);
-	    
-	    myLines
-	      .exit()
-	      .remove();
-
-    	    this.newLines = myLines
-	      .enter()
-	      .append("path")
-	      .merge(myLines)
-	      .attr("d", function(d) { return that.toline(d.trajetoria)})
-	      .style("stroke", function(d) { return that.zScale (d.idObj); });
+	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
+	this.myLines.exit().remove();
+	this.myLines.enter().append("path");
+	this.myLines.transition()
+                        .duration(50)
+          				.attr("d", function(d) { return that.toline(d.trajetoria)})
+	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
 
   	
   }
