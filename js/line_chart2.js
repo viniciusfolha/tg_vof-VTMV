@@ -189,14 +189,6 @@ class LineChart{
 	   		.x(function(d) {  return xScale(d.novadata ); })
 		    .y(function(d) {  return yScale(d[that.selected]); });
 
-
-
-
-
-		
-
-
-
 		this.do_grid();
 	    this.update();
 
@@ -224,43 +216,13 @@ class LineChart{
 	    this.yAxisGroup.call(this.yAxis);
 	    
 
-    
-    // Make the changes
-    	this.newLines.remove();
-    	var myLines =
-	      this.lines
-	        .selectAll(".line_chart")
-	        .data(this.selectedIDS);
-	    
-	    myLines
-	      .exit()
-	      .remove();
-
-    	this.newLines = myLines
-	      .enter()
-	      .append("path")
-	      .merge(myLines)
-	      .attr("d", function(d) { return that.toline(d.trajetoria)})
-	      .style("stroke", function(d) { return that.zScale (d.idObj); });
-
-
-	   /*
-      	
-
-	    this.yAxisGroup
-		  .select("text")
-		  .text(this.selected)
-
-		this.newLines.selectAll(".line_chart").transition();
-
-	    this.newLines
-	        .selectAll("path")
-	        
-	        .duration(750)
-  			
-	      	.attr("d", function(d) { return that.toline(d.trajetoria)})
-	      	.style("stroke", function(d) { return that.zScale (d.idObj); });
-		*/
+	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
+	this.myLines.exit().remove();
+	this.myLines.enter().append("path");
+	this.myLines.transition()
+                        .duration(50)
+          				.attr("d", function(d) { return that.toline(d.trajetoria)})
+	      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
   	}
 
   	update(){

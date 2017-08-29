@@ -20,13 +20,13 @@ class MapL{
 
 		L.svg().addTo(this.map);	
 		this.svg = d3.select("#map").select("svg");
-		this.g = this.svg.attr("id", "circles_layer").append("g");     
+		this.g = this.svg.attr("id", "circles_layer");     
 
 
 		L.svg().addTo(this.map);	
 		var aux = d3.select("#map").selectAll("svg");
 		this.newSVG = aux.filter(function (d, i) { return i === 1;})
-		this.gLines = this.newSVG.attr("id", "lines_layer").append("g");
+		this.gLines = this.newSVG.attr("id", "lines_layer").select("g");
 
 		this.data;
 		this.info;
@@ -57,7 +57,7 @@ class MapL{
 		this.createLegend();
 		this.createCircle(data);
 		*/
-
+		
 		this.createLines()
 		
 		
@@ -353,7 +353,7 @@ class MapL{
 	setDomainRange(datafiltered){
 		var that = this;
 		this.selectedIDS = datafiltered;
-		this.featureL.remove();
+		//this.featureL.remove();
 		
 		this.domainSelected = [
 		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
@@ -361,7 +361,22 @@ class MapL{
 		];
 
 		this.colorScale.domain(this.domainSelected);
-		
+		this.featureL = this.newSVG.select("g").selectAll(".lines_group").data(datafiltered);
+		this.featureL.exit().remove();
+		this.featureL.enter().append("g").attr("class", "lines_group");
+
+		this.segments = this.featureL.selectAll("path")
+      				.data(that.createsegments);
+      	this.segments.exit().remove();
+      	this.segments.enter().append("path");
+      	this.segments.attr("d", that.toLine)
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
+      				.attr("fill", "none")
+      				.attr("stroke-linejoin", "round")
+			      	.attr("stroke-linecap", "round")
+			      	.attr("stroke-width", 1.5);
+
+		/*
 		this.featureL = this.gLines.selectAll(".lines_group")
       			.data(datafiltered)
     			.enter().append("g").attr("class","lines_group" );
@@ -375,7 +390,7 @@ class MapL{
       				.attr("stroke-linejoin", "round")
 			      	.attr("stroke-linecap", "round")
 			      	.attr("stroke-width", 1.5);
-
+		*/
 
 
 		this.legend2.remove();
