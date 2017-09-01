@@ -291,9 +291,8 @@ class LineChart{
   	var that = this;
 	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.data);
 	this.myLines.exit().remove();
-	this.myLines.enter().append("path");
-	this.myLines.transition()
-                        .duration(50)
+	let enteredLines = this.myLines.enter().append("path");
+	this.myLines.merge(enteredLines)
           				.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
   }
@@ -306,17 +305,18 @@ class LineChart{
 		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selected]; }); }),
 		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selected]; }); })
 	]);
-		this.toline = d3.line()
+
+    this.yAxis.scale(this.yScale);
+	this.yAxisGroup.call(this.yAxis);
+
+	this.toline = d3.line()
 	   		.x(function(d) { d.novadata = new Date(d.datahora).setYear(2000);  return that.xScale(d.novadata); })
 		    .y(function(d) {  return that.yScale(d[that.selected]); });
-	
-	
-
 
 	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
 	this.myLines.exit().remove();
-	this.myLines.enter().append("path");
-	this.myLines.attr("d", function(d) { return that.toline(d.trajetoria)})
+	let enteredLines = this.myLines.enter().append("path");
+	this.myLines.merge(enteredLines).attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
 
   	

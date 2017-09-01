@@ -116,17 +116,11 @@ class GanttChart{
     	.attr("y", function(d, i){
     		return i*t ;
     	})
-    	.attr("width", function(d){
-    		return that.width;
-    	})
+    	.attr("width",that.width)
     	.attr("height",t )
-    	.attr("stroke", "none")
     	.attr("fill", function(d,i){
-
     		return that.color(i);
-
-    	})
-    	.attr("opacity", 0.2);
+    	});
 
     	this.ganntyear = this.bargantt.selectAll(".ganntyear")
     	.data(this.dataYear).enter().append("g").attr("class", "ganntyear");
@@ -207,48 +201,62 @@ class GanttChart{
 
 	  	var dt1 = this.yScale.domain()[0];
 	  	var dt2 = this.yScale.domain()[1];
-	  	dt1.setUTCMonth(0,1);
-	  	dt2.setUTCMonth(11,31);
-	  	var diffYear = datafiltered.length;
-	  	var t = this.height/diffYear; 
 
-	  	this.bigRects = this.canvas.select(".bigrect").selectAll("rect").data(datafiltered);
-	  	this.bigRects.exit().remove();
-	  	this.bigRects.enter().append("rect").attr("x", 0);
+			dt1.setUTCMonth(0,1);
+			dt2.setUTCMonth(11,31);
 
-	  	this.bigRects
-	  	.attr("x", 0)
-	  	.attr("y", function(d, i){
-	  		return i*t ;
-	  	})
-	  	.attr("width", function(d){
-	  		return that.width;
-	  	})
-	  	.attr("height",t )
-	  	.attr("stroke", "none")
-	  	.attr("fill", function(d,i){
-	  		return that.color(i);
-	  	})
-	  	.attr("opacity", 0.2);
+			var diffYear = datafiltered.length;
+			var t = this.height/diffYear; 
+			this.yScale.clamp(true);
+			this.bigRects = this.canvas.select(".bigrect").selectAll("rect").data(datafiltered);
+			this.bigRects.exit().remove();
+			let enteredGannt = this.bigRects.enter().append("rect").attr("x", 0).attr("width",  that.width);
 
-	  	this.ganntyear  = this.canvas.select(".bargantt").selectAll(".ganntyear").data(datafiltered);
-	  	this.ganntyear.exit().remove();
-	  	this.ganntyear.enter().append("g").attr("class", "ganntyear");
-	  	this.smallBars = this.ganntyear.selectAll("rect").data(function(d){ return d.values });
-	  	this.smallBars.enter().append("rect")
-	  	this.smallBars.exit().remove();
+			this.bigRects.merge(enteredGannt)
+			.attr("y", function(d, i){
+				return that.yScale(new Date(d.key,11,31)) ;
+			})
+			.attr("height", function(d, i, e){
+					return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); }
+			 )
+			.attr("fill", function(d,i){
+				return that.color(i);
+			});
 
-	  	this.smallBars
-	  	.attr("y", function(d,i,j) { return that.yScale(new Date(d.trajetoria[0].datahora.getFullYear(),0)) - (i+1)*(t/j.length) })
-	  	.attr("height", function(d,i,j){ return t/j.length})
-	  	.attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
-	  	.attr("width", function(d) {var dtaux = new Date(d.dateDomain[0].getTime());
-	  		var dtaux1 = new Date(d.dateDomain[1].getTime());
-	  		return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
-	  	.attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
+			this.ganntyear  = this.canvas.select(".bargantt").selectAll(".ganntyear").data(datafiltered);
+			this.ganntyear.exit().remove();
+			let enteterdGanntYear = this.ganntyear.enter().append("g").attr("class", "ganntyear");
+			this.smallBars = this.ganntyear.merge(enteterdGanntYear).selectAll("rect").data(function(d){ return d.values });
+			let enteredSmallBars = this.smallBars.enter().append("rect")
+			this.smallBars.exit().remove();
 
 
-	  	this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
+			var XdateAuxInit;
+			var barHeight;
+			var yAuxInit;
+			var yAuxEnd;
+			this.smallBars.merge(enteredSmallBars)
+			.attr("y", function(d,i,j) {
+					yAuxInit = that.yScale(new Date(d.dateDomain[0].getFullYear(),0)) ;
+					yAuxEnd = that.yScale(new Date(d.dateDomain[0].getFullYear(),11,31));
+					barHeight = yAuxInit - yAuxEnd;
+					barHeight = barHeight/j.length;
+					//return that.yScale(new Date(d.dateDomain[0].getFullYear(),0)) - (i+1)*(t/j.length);
+				
+					return yAuxEnd + barHeight*i;
+				 
+			})
+			.attr("height", barHeight)
+			.attr("x", function(d) { var aux = new Date(d.dateDomain[0].getTime()); 
+									 XdateAuxInit= that.xScale(aux.setFullYear(2012)); 
+									return XdateAuxInit;})
+			.attr("width", function(d) {var dtaux = new Date(d.dateDomain[0].getTime());
+				var dtaux1 = new Date(d.dateDomain[1].getTime());
+				return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
+			.attr("fill", function(d) { return that.color(d.dateDomain[0].getFullYear()); })
+
+
+			this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
 
 	  }
 
@@ -288,43 +296,35 @@ class GanttChart{
 
 			var diffYear = datafiltered.length;
 			var t = this.height/diffYear; 
-
+			this.yScale.clamp(true);
 			this.bigRects = this.canvas.select(".bigrect").selectAll("rect").data(datafiltered);
 			this.bigRects.exit().remove();
-			this.bigRects.enter().append("rect").attr("x", 0);
+			let enteredGannt = this.bigRects.enter().append("rect").attr("x", 0).attr("width",  that.width);
 
-			this.yScale.clamp(true);
-
-			this.bigRects
-			.attr("x", 0)
+			this.bigRects.merge(enteredGannt)
 			.attr("y", function(d, i){
 				return that.yScale(new Date(d.key,11,31)) ;
 			})
-			.attr("width", function(d){
-				return that.width;
-			})
 			.attr("height", function(d, i, e){
-					return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); 
-			}
+					return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); }
 			 )
-			.attr("stroke", "none")
 			.attr("fill", function(d,i){
 				return that.color(i);
-			})
-			.attr("opacity", 0.2);
+			});
 
 			this.ganntyear  = this.canvas.select(".bargantt").selectAll(".ganntyear").data(datafiltered);
 			this.ganntyear.exit().remove();
-			this.ganntyear.enter().append("g").attr("class", "ganntyear");
-			this.smallBars = this.ganntyear.selectAll("rect").data(function(d){ return d.values });
-			this.smallBars.enter().append("rect")
+			let enteterdGanntYear = this.ganntyear.enter().append("g").attr("class", "ganntyear");
+			this.smallBars = this.ganntyear.merge(enteterdGanntYear).selectAll("rect").data(function(d){ return d.values });
+			let enteredSmallBars = this.smallBars.enter().append("rect")
 			this.smallBars.exit().remove();
 
 
+			var XdateAuxInit;
 			var barHeight;
 			var yAuxInit;
 			var yAuxEnd;
-			this.smallBars
+			this.smallBars.merge(enteredSmallBars)
 			.attr("y", function(d,i,j) {
 					yAuxInit = that.yScale(new Date(d.dateDomain[0].getFullYear(),0)) ;
 					yAuxEnd = that.yScale(new Date(d.dateDomain[0].getFullYear(),11,31));
@@ -335,9 +335,10 @@ class GanttChart{
 					return yAuxEnd + barHeight*i;
 				 
 			})
-			.attr("height", function(d,i,j){ //return t/j.length}
-				return barHeight})
-			.attr("x", function(d) {var dtaux = new Date(d.dateDomain[0].getTime()); return that.xScale(dtaux.setFullYear(2012)); })
+			.attr("height", barHeight)
+			.attr("x", function(d) { var aux = new Date(d.dateDomain[0].getTime()); 
+									 XdateAuxInit= that.xScale(aux.setFullYear(2012)); 
+									return XdateAuxInit;})
 			.attr("width", function(d) {var dtaux = new Date(d.dateDomain[0].getTime());
 				var dtaux1 = new Date(d.dateDomain[1].getTime());
 				return that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))})
@@ -349,43 +350,5 @@ class GanttChart{
 		}
 
 	}
-
-
-
-
-	do_grid(){
-		var that = this;
-		function make_x_gridlines() {		
-			return d3.axisBottom(that.xScale)
-			.ticks(5)
-		}
-
-		// gridlines in y axis function
-		function make_y_gridlines() {		
-			return d3.axisLeft(that.yScale)
-			.ticks(5)
-		}
-
-
-			  // add the X gridlines
-			  this.canvas.append("g")			
-			  .attr("class", "grid")
-			  .attr("transform", "translate(0," + this.height + ")")
-			  .call(make_x_gridlines()
-			  	.tickSize(-this.height)
-			  	.tickFormat("")
-			  	)
-
-	  // add the Y gridlines
-
-	  this.canvas.append("g")			
-	  .attr("class", "grid")
-	  .call(make_y_gridlines()
-	  	.tickSize(-this.totalWidth)
-	  	.tickFormat("")
-	  	)
-
-	}
-
 
 }

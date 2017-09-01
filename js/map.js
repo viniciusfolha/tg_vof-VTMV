@@ -52,6 +52,7 @@ class MapL{
 		this.data = data;
 		this.configData = configData;
 		this.selectedIDS = data;
+		
 		/*
 		this.createInfo();
 		this.createLegend();
@@ -82,8 +83,7 @@ class MapL{
 		
 		this.colorScale.domain(this.domainSelected);
 		this.segments.style("stroke", function(d) {return that.colorScale( (d[0][select.target.value] + d[1][select.target.value])/2 ) })
-		this.legend2.remove();
-		this.createLegend2();
+		this.map.legend.setContent();
 		
 	}
 	createCircle(data){
@@ -132,25 +132,28 @@ class MapL{
 	}
 	reset(){
 		var that = this;
-		//this.circleGroup.remove();
-		this.featureL.remove();
 		
-		//var test = this.data.filter(function(d){return !( time[0] > d.dateDomain[1] || d.dateDomain[0] > time[1]   );  })
+		this.selectedIDS = this.data;
 		
-		this.featureL = this.gLines.selectAll(".lines_group")
-      			.data(this.data)
-    			.enter().append("g").attr("class","lines_group" );
+		this.domainSelected = [
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+		];
+		console.log(this.domainSelected)
 
-    	this.segments = this.featureL.selectAll("path")
-      				.data(that.createsegments)
-      			.enter().append("path")
-      				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
-      				.attr("fill", "none")
-      				.attr("stroke-linejoin", "round")
-			      	.attr("stroke-linecap", "round")
-			      	.attr("stroke-width", 1.5);
+		this.colorScale.domain(this.domainSelected);
+		this.featureL = this.newSVG.select("g").selectAll(".lines_group").data(that.selectedIDS);
+		this.featureL.exit().remove();
+		let enteredFeatureL = this.featureL.enter().append("g").attr("class", "lines_group");
 
+		this.segments = this.featureL.merge(enteredFeatureL).selectAll("path")
+      				.data(that.createsegments);
+      	this.segments.exit().remove();
+      	let enteredSegments = this.segments.enter().append("path");
+      	this.segments.merge(enteredSegments).attr("d", that.toLine)
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
+
+		this.map.legend.setContent();	
 		
 	}
 
@@ -173,14 +176,15 @@ class MapL{
 
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
         .domain(this.domainSelected);
-
+        var aux;
 		this.toLine = d3.line()
 				.curve(d3.curveLinear)
 				.x(function(d){
-					return that.map.latLngToLayerPoint(d.LatLng).x
+					aux = that.map.latLngToLayerPoint(d.LatLng);
+					return aux.x;
 				})
 				.y(function(d){
-					return that.map.latLngToLayerPoint(d.LatLng).y
+					return aux.y;
 				});
 		this.featureL = this.gLines.selectAll(".lines_group")
       			.data(this.data)
@@ -190,11 +194,7 @@ class MapL{
       				.data(that.createsegments)
       			.enter().append("path")
       				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
-      				.attr("fill", "none")
-      				.attr("stroke-linejoin", "round")
-			      	.attr("stroke-linecap", "round")
-			      	.attr("stroke-width", 1.5);
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
 
 	}
 
@@ -260,67 +260,67 @@ class MapL{
 		};
 		legend.addTo(this.map);
 		return legend;
-		/*this.legend = L.control({position: 'bottomright'});
-		var that = this;
-		this.legend.onAdd = function (map) {
-
-		    var div = L.DomUtil.create('div', 'info legend'),
-		        grades = [],
-		        labels = [];
-
-		        div.id = "legend_id"
-		        div.innerHTML = '<h4>Id Obj:</h4> '
-		        
-		    for (var i = 0; i < that.idsObjs.length; i++) {
-
-		        div.innerHTML +=
-		            '<i style="background:' + that.color(that.idsObjs[i]) + '"></i> ' +
-		            that.idsObjs[i] + (that.idsObjs[i+1] ? '<br>' : '');
-		    }
-		    
-
-		    L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
-		    return div;
-		};
-
-
-		this.legend.addTo(this.map);
-		*/
 	}
 	createLegend2(){
 
-
-		this.legend2 = L.control({position: 'bottomleft'});
 		var that = this;
 		var color = d3.scaleQuantize()
 		  .domain(this.domainSelected)
 		  .range(d3.schemeRdYlGn['8'])
 
+		L.Legend = L.Control.extend({
+		    'onAdd': function (map) {
 
-		this.legend2.onAdd = function (map) {
+		        // add reference to mapinstance
+		        map.legend = this;
 
-		    var div = L.DomUtil.create('div', 'info legend2'),
-		        grades = d3.schemeRdYlGn['8'],
-		        labels = [];
+	  			var div = L.DomUtil.create('div', 'info legend2'),
+			        grades = d3.schemeRdYlGn['8'],
+			        labels = [];
 
-		        div.id = "legend_id2"
-		        div.innerHTML = '<h4>'+ that.Selected + ':</h4> '
-		       
-		    for (var i = 0; i < grades.length; i++) {
-		    	var aux = color.invertExtent(grades[i]);
+			        div.id = "legend_id2"
+			        div.innerHTML = '<h4>'+ that.Selected + ':</h4> '
+			       
+			    for (var i = 0; i < grades.length; i++) {
+			    	var aux = color.invertExtent(grades[i]);
 
-		        div.innerHTML +=
-		            '<i style="background:' + grades[i] + '"></i> ' +
-		             aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
-		    }
+			        div.innerHTML +=
+			            '<i style="background:' + grades[i] + '"></i> ' +
+			             aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
+			    }
+			    return div;
+		    },
+		    'onRemove': function (map) {
+
+		      // remove reference from mapinstance
+		      delete map.legend;
+
+		    },
+
+		    // new method for setting innerHTML
+		    'setContent': function() {
+				var grades = d3.schemeRdYlGn['8'];
+				var color = d3.scaleQuantize()
+				  .domain(that.domainSelected)
+				  .range(d3.schemeRdYlGn['8']);
+					        
+				var divinnerHTML = '<h4>'+ that.Selected + ':</h4> ';
+					       
+			    for (var i = 0; i < grades.length; i++) {
+			    	var aux = color.invertExtent(grades[i]);
+
+			        divinnerHTML +=
+			            '<i style="background:' + grades[i] + '"></i> ' +
+			             aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
+			    }
+
+		        this.getContainer().innerHTML = divinnerHTML;
 		    
-
-		    //L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
-		    return div;
-		};
+		    }
+		});
 
 
-		this.legend2.addTo(this.map);
+		this.legend2 = that.map.addControl(new L.Legend({position: 'bottomleft'}));
 	}
 
 	createInfo(){
@@ -363,47 +363,16 @@ class MapL{
 		this.colorScale.domain(this.domainSelected);
 		this.featureL = this.newSVG.select("g").selectAll(".lines_group").data(datafiltered);
 		this.featureL.exit().remove();
-		this.featureL.enter().append("g").attr("class", "lines_group");
+		let enteredFeatureL = this.featureL.enter().append("g").attr("class", "lines_group");
 
-		this.segments = this.featureL.selectAll("path")
+		this.segments = this.featureL.merge(enteredFeatureL).selectAll("path")
       				.data(that.createsegments);
       	this.segments.exit().remove();
-      	this.segments.enter().append("path");
-      	this.segments.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
-      				.attr("fill", "none")
-      				.attr("stroke-linejoin", "round")
-			      	.attr("stroke-linecap", "round")
-			      	.attr("stroke-width", 1.5);
+      	let enteredSegments = this.segments.enter().append("path");
+      	this.segments.merge(enteredSegments).attr("d", that.toLine)
+      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
 
-		/*
-		this.featureL = this.gLines.selectAll(".lines_group")
-      			.data(datafiltered)
-    			.enter().append("g").attr("class","lines_group" );
-
-    	this.segments = this.featureL.selectAll("path")
-      				.data(that.createsegments)
-      			.enter().append("path")
-      				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) })
-      				.attr("fill", "none")
-      				.attr("stroke-linejoin", "round")
-			      	.attr("stroke-linecap", "round")
-			      	.attr("stroke-width", 1.5);
-		*/
-
-
-		this.legend2.remove();
-		this.createLegend2();
-
-	}
-
-
-	rename_attr(obj, old_name, new_name) {
-      if (obj.hasOwnProperty(old_name)) {
-          obj[new_name] = obj[old_name];
-          delete obj[old_name];
-      }
+		this.map.legend.setContent();	
 	}
 
 

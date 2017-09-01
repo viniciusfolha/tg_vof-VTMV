@@ -33,8 +33,9 @@
 
 .line {                         
   fill: none;                   
-  stroke: url(#line-gradient);  
-  stroke-width: 2px;            
+  stroke-width: 2px;
+  stroke-linejoin: "round";
+  stroke-linecap": "round";          
 }
 
 .legend2 {
@@ -52,4 +53,9 @@
     float: left;
     margin-right: 8px;
     opacity: 0.7;
+}
+
+.bigrect{
+    opacity: 0.2;
+    stroke: "none";   
 }

@@ -131,6 +131,7 @@ function readData(){
 			var line_chart = new LineChart("linechart1",mySVG2,0,10,450,300);
 
 			map.setData(data, configData);
+			
 			bar_chart.setData(data,configData.nomes);
 			line_chart.setData(data, configData.nomes);
 
