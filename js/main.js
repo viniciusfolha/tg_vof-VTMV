@@ -180,8 +180,15 @@ function readData(){
 	    	bar_chart.dispatcher = myDispatcher;
 	    	
 
+	    	var div =  document.createElement("div");
+			div.style.width = 100 +'%';
+			div.id = "canvas";
+			document.body.appendChild(div);
+			var t = document.body.clientWidth; 
+			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 300);
 
-
+			novoGannt.setData(data,configData.nomes);
+			
 
 
 

@@ -176,16 +176,17 @@ class MapL{
 
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
         .domain(this.domainSelected);
-        var aux;
+
+        
 		this.toLine = d3.line()
 				.curve(d3.curveLinear)
 				.x(function(d){
-					aux = that.map.latLngToLayerPoint(d.LatLng);
-					return aux.x;
+					return that.map.latLngToLayerPoint(d.LatLng).x;
 				})
 				.y(function(d){
-					return aux.y;
+					return that.map.latLngToLayerPoint(d.LatLng).y;
 				});
+				
 		this.featureL = this.gLines.selectAll(".lines_group")
       			.data(this.data)
     			.enter().append("g").attr("class","lines_group" );
