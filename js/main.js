@@ -185,7 +185,7 @@ function readData(){
 			div.id = "canvas";
 			document.body.appendChild(div);
 			var t = document.body.clientWidth; 
-			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 300);
+			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 340);
 
 			novoGannt.setData(data,configData.nomes);
 			
