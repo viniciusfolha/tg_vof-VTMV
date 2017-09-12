@@ -23,7 +23,7 @@ class GanttChartCanvas{
 	    				.attr("height",this.brushHeight);
 
 		this.xScaleCont = d3.scaleTime().range([50, this.width]);
-    	this.yScaleCont = d3.scaleLinear().range([this.brushHeight - 17 ,4]);
+    	this.	yScaleCont = d3.scaleLinear().range([this.brushHeight - 17 ,4]);
     	this.xAxisCont = d3.axisBottom(this.xScaleCont).ticks(20);
     	this.yAxisCont = d3.axisLeft(this.yScaleCont);
 
@@ -42,7 +42,7 @@ class GanttChartCanvas{
 
 		this.xScale = d3.scaleTime().range([50, this.width]).clamp(true);
 		this.yScale = d3.scaleTime().range([this.heightCanvas + this.margin.top - this.margin.bottom , this.margin.top ]).clamp(true);
-
+		this.init = true;
     	this.data;
 
     }
@@ -60,15 +60,15 @@ class GanttChartCanvas{
     	var dt1 = new Date(auxDateDomain[0])
     	var dt2 = new Date(auxDateDomain[1],11,31);
     	var diffYear = this.dataYear.length;;
-
-    	this.xScaleCont.domain([dt1,dt2]);
-    	this.yScaleCont.domain([ 0 
-    		, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
-
+    	if(this.init){
+	    	this.xScaleCont.domain([dt1,dt2]);
+	    	this.yScaleCont.domain([ 0 
+	    		, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
+    	}
 
     	this.xScale.domain([new Date(2012, 0, 1), new Date(2012, 11, 31)]);
 
-    	this.yScale.domain(this.xScaleCont.domain());
+    	this.yScale.domain([dt1,dt2]);
 
     	this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
 
@@ -118,7 +118,7 @@ class GanttChartCanvas{
 				var yAuxEnd = that.yScale(new Date(year,11,31));
 				var barHeight = yAuxInit - yAuxEnd;
 				barHeight = barHeight/j.length;
-				var yprint = yAuxEnd + barHeight*i;
+				var yprint = yAuxInit - barHeight*(i+1);
 				d3.select(this)
 				.attr("y", yprint)
 				.attr("height", barHeight)
@@ -142,7 +142,7 @@ class GanttChartCanvas{
 				var yAuxEnd = that.yScale(new Date(year,11,31));
 				var barHeight = yAuxInit - yAuxEnd;
 				barHeight = barHeight/j.length;
-				var yprint = yAuxEnd + barHeight*i;
+				var yprint = yAuxInit - barHeight*(i+1);
 				d3.select(this)
 				.attr("y", yprint)
 				.attr("height", barHeight)
@@ -161,7 +161,8 @@ class GanttChartCanvas{
     	this.drawyAxis();
     	if(!this.dispatcher)
     	this.drawBrushArea();
-    	this.dispatcher = true;
+    	
+    	this.init = false;
 
 	}
 	drawBrushArea(){
@@ -232,6 +233,7 @@ class GanttChartCanvas{
 		that.context.strokeStyle = "black";
 		that.context.stroke();
 
+		that.context.fillStyle = 'black';
 		that.context.textAlign = "right";
 		that.context.textBaseline = "middle";
 		ticks.forEach(function(d) {
@@ -273,7 +275,8 @@ class GanttChartCanvas{
 
 		  that.context.strokeStyle = "black";
 		  that.context.stroke();
-		  
+
+		  that.context.fillStyle = 'black';
 		  that.context.textAlign = "center";
 		  that.context.textBaseline = "top";
 		  ticks.forEach(function(d) {
@@ -282,9 +285,7 @@ class GanttChartCanvas{
 	}
 	clearCanvas(){
 	// clear canvas
-	  this.context.fillStyle = "#fff";
-	  this.context.rect(0,0,this.width,this.heightCanvas);
-	  this.context.fill();
+		this.context.clearRect(0, 0, this.width, this.heightCanvas);
 	}
 	drawCanvas() {
 		var that = this;
@@ -318,7 +319,7 @@ class GanttChartCanvas{
 
 	zoomed() {
 	  	if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush" && d3.event.sourceEvent.type === "start") return; // ignore zoom-by-brush
-
+	  	console.log("aqui nao");
 	  	var that = this;
 	  	var t = d3.event.transform;
 	  	this.yScale.domain(t.rescaleX(this.xScaleCont).domain());
@@ -422,8 +423,8 @@ class GanttChartCanvas{
 */
 			var test = 1;
 			this.setData(auxDatafilt,test);
-			/*this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
-	*/
+			this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
+	
 		}
 	
 	}

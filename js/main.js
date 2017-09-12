@@ -140,7 +140,7 @@ function readData(){
 
 
 
-
+/*
 			//GANTT
 			var div =  document.createElement("div");
 			div.style.width = 100 +'%';
@@ -153,10 +153,10 @@ function readData(){
 	    				.attr("height","400");
 	    	var gantt_chart = new GanttChart("ganttchart",mySVG3,0,0,t,300);
 	    	gantt_chart.setData(data,configData.nomes);
-
+*/
 	    	myDispatcher.on("selectionChanged", function(){
 				
-			    if(this.callerID === "ganttchart"){
+			    if(this.callerID === "canvas"){
 
 					line_chart.setDomainRange(this.datafiltered);
 					map.setDomainRange(this.datafiltered);
@@ -176,7 +176,7 @@ function readData(){
 				
 			});
 	    	map.dispatcher - myDispatcher;
-	    	gantt_chart.dispatcher = myDispatcher;
+	    	//gantt_chart.dispatcher = myDispatcher;
 	    	bar_chart.dispatcher = myDispatcher;
 	    	
 
@@ -188,7 +188,7 @@ function readData(){
 			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 340);
 
 			novoGannt.setData(data,configData.nomes);
-			
+			novoGannt.dispatcher = myDispatcher;
 
 
 
