@@ -31,6 +31,8 @@ class GanttChartCanvas{
     	.extent([[50, 4], [this.width, this.brushHeight - 17]])
     	.on("brush", this.brushed.bind(this));	
 
+
+
 		this.context = canvas.node().getContext("2d");
 
 		// Create an in memory only element of type 'custom'
@@ -48,35 +50,61 @@ class GanttChartCanvas{
     }
 
     setData(data,opcoes){
-    	if(!this.data)
+    	if(!this.data){
     		this.data = data;
-    	var that = this;
+    		this.dataYear = d3.nest()
+    			.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
+    			.entries(data);
+    		var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
 
-    	this.dataYear = d3.nest()
-    	.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
-    	.entries(data);
-    	var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
-
-    	var dt1 = new Date(auxDateDomain[0])
-    	var dt2 = new Date(auxDateDomain[1],11,31);
-    	var diffYear = this.dataYear.length;;
-    	if(this.init){
-	    	this.xScaleCont.domain([dt1,dt2]);
+    		var dt1 = new Date(auxDateDomain[0])
+    		var dt2 = new Date(auxDateDomain[1],11,31);
+			this.xScaleCont.domain([dt1,dt2]);
 	    	this.yScaleCont.domain([ 0 
 	    		, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
-    	}
+    		this.drawBrushArea();
+    		this.contextSVG.append("g")
+    		.attr("class", "brush")
+    		.call(this.brush)
+    		.call(this.brush.move, [200,300]);
+    	}else{
 
-    	this.xScale.domain([new Date(2012, 0, 1), new Date(2012, 11, 31)]);
+	    	var that = this;
 
-    	this.yScale.domain([dt1,dt2]);
+	    	this.dataYear = d3.nest()
+	    	.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
+	    	.entries(data);
+	    	var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
 
-    	this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
+	    	var dt1 = new Date(auxDateDomain[0])
+	    	var dt2 = new Date(auxDateDomain[1],11,31);
+	    	var diffYear = this.dataYear.length;;
 
-    	this.dataBinding = this.dataContainer.selectAll("custom.rect")
-    		.data(this.dataYear, function(d) { return d; });
 
-    		// update existing element to have size 15 and fill green
-		this.dataBinding
+	    	this.xScale.domain([new Date(2012, 0, 1), new Date(2012, 11, 31)]);
+
+	    	this.yScale.domain([dt1,dt2]);
+
+	    	this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
+
+	    	this.dataBinding = this.dataContainer.selectAll("custom.rect")
+	    		.data(this.dataYear, function(d) { return d; });
+
+	    		// update existing element to have size 15 and fill green
+			this.dataBinding
+			      .attr("x", that.xScale.range()[0])
+				  .attr("y", function(d, i){
+							return that.yScale(new Date(d.key,11,31)) ;	})
+				  .attr("height", function(d, i, e){
+								return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); })
+			      .attr("width", that.width)
+			      .attr("fillStyle", function(d, i){ return that.color(i);});
+
+		  // for new elements, create a 'custom' dom node, of class rect
+		  // with the appropriate rect attributes
+			this.dataBinding.enter()
+		      .append("custom")
+		      .classed("rect", true)
 		      .attr("x", that.xScale.range()[0])
 			  .attr("y", function(d, i){
 						return that.yScale(new Date(d.key,11,31)) ;	})
@@ -85,46 +113,33 @@ class GanttChartCanvas{
 		      .attr("width", that.width)
 		      .attr("fillStyle", function(d, i){ return that.color(i);});
 
-	  // for new elements, create a 'custom' dom node, of class rect
-	  // with the appropriate rect attributes
-		this.dataBinding.enter()
-	      .append("custom")
-	      .classed("rect", true)
-	      .attr("x", that.xScale.range()[0])
-		  .attr("y", function(d, i){
-					return that.yScale(new Date(d.key,11,31)) ;	})
-		  .attr("height", function(d, i, e){
-						return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); })
-	      .attr("width", that.width)
-	      .attr("fillStyle", function(d, i){ return that.color(i);});
+		  // for exiting elements, change the size to 5 and make them grey.
+			this.dataBinding.exit().remove();
 
-	  // for exiting elements, change the size to 5 and make them grey.
-		this.dataBinding.exit().remove();
+			var auxRect =  this.dataContainer.selectAll("custom.rect");
+			this.smallBars = auxRect.selectAll("custom.smallrect").data(function(d){ return d.values });
 
-		var auxtsdsa =  this.dataContainer.selectAll("custom.rect");
-		this.smallBars = auxtsdsa.selectAll("custom.smallrect").data(function(d){ return d.values });
+			this.smallBars.each(function(d,i,j){
+					var aux = new Date(d.dateDomain[0].getTime()); 
+					var XdateAuxInit= that.xScale(aux.setFullYear(2012)); 
+					var year = d.dateDomain[0].getFullYear();
+					var color  = that.color(year);
 
-		this.smallBars.each(function(d,i,j){
-				var aux = new Date(d.dateDomain[0].getTime()); 
-				var XdateAuxInit= that.xScale(aux.setFullYear(2012)); 
-				var year = d.dateDomain[0].getFullYear();
-				var color  = that.color(year);
+					var dtaux = new Date(aux);
+					var dtaux1 = new Date(d.dateDomain[1].getTime());
+					var width = that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))
 
-				var dtaux = new Date(aux);
-				var dtaux1 = new Date(d.dateDomain[1].getTime());
-				var width = that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))
-
-				var yAuxInit = that.yScale(new Date(year,0)) ;
-				var yAuxEnd = that.yScale(new Date(year,11,31));
-				var barHeight = yAuxInit - yAuxEnd;
-				barHeight = barHeight/j.length;
-				var yprint = yAuxInit - barHeight*(i+1);
-				d3.select(this)
-				.attr("y", yprint)
-				.attr("height", barHeight)
-				.attr("x", XdateAuxInit)
-				.attr("width", width)
-				.attr("fillStyle", color)
+					var yAuxInit = that.yScale(new Date(year,0)) ;
+					var yAuxEnd = that.yScale(new Date(year,11,31));
+					var barHeight = yAuxInit - yAuxEnd;
+					barHeight = barHeight/j.length;
+					var yprint = yAuxInit - barHeight*(i+1);
+					d3.select(this)
+					.attr("y", yprint)
+					.attr("height", barHeight)
+					.attr("x", XdateAuxInit)
+					.attr("width", width)
+					.attr("fillStyle", color)
 			});
 
 		this.smallBars.enter().append("custom").classed("smallrect", true)
@@ -159,10 +174,10 @@ class GanttChartCanvas{
     	this.drawCanvas();
     	this.drawxAxis();
     	this.drawyAxis();
-    	if(!this.dispatcher)
-    	this.drawBrushArea();
+
+
     	
-    	this.init = false;
+    	}
 
 	}
 	drawBrushArea(){
@@ -199,10 +214,7 @@ class GanttChartCanvas{
 
 
 
-    	this.contextSVG.append("g")
-    	.attr("class", "brush")
-    	.call(this.brush)
-    	.call(this.brush.move, this.xScaleCont.range());
+
 
 	}
 	drawyAxis(){
@@ -249,7 +261,6 @@ class GanttChartCanvas{
 		that.context.restore();
 	}
 	drawxAxis() {
-		console.log();
 		var that = this;
 		var tickCount = 10,
 		      tickSize = 10,
@@ -400,7 +411,7 @@ class GanttChartCanvas{
 
 
 	  brushed() {
-	  	
+	  	console.log("dhsuahd");
 	  	if(this.dispatcher){
 			if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom" && d3.event.sourceEvent.type === "start") return; // ignore brush-by-zoo
 			var that = this;

@@ -1,14 +1,15 @@
 class MapL{
 	constructor(id, width, height, color, divM){
 		var that = this;
-
-		this.color = color;
 		var div = document.createElement("div");
 		div.style.width = width +'px';
 		div.style.height = height + 'px';
 		div.id = id;
 		
 		divM.appendChild(div);
+		this.width = width;
+		this.heightCanvas = height;
+		this.color = color;
 
 		this.map = L.map(id).setView([-22.906323, -43.182386], 12);
 		var mapLink =  '<a href="http://openstreetmap.org">OpenStreetMap</a>';
@@ -27,7 +28,7 @@ class MapL{
 		var aux = d3.select("#map").selectAll("svg");
 		this.newSVG = aux.filter(function (d, i) { return i === 1;})
 		this.gLines = this.newSVG.attr("id", "lines_layer").select("g");
-
+		this.canvas = L.canvas().addTo(this.map);
 		this.data;
 		this.info;
 		this.idsObjs;
@@ -52,27 +53,121 @@ class MapL{
 		this.data = data;
 		this.configData = configData;
 		this.selectedIDS = data;
+
 		
 		/*
 		this.createInfo();
 		this.createLegend();
 		this.createCircle(data);
-		*/
+		
 		
 		this.createLines()
+		*/
 		
+		// Create an in memory only element of type 'custom'
+		var detachedContainer = document.createElement("custom");
+		this.dataContainer = d3.select(detachedContainer);
+		this.Selected = this.configData.nomes[0];
+		this.context = this.canvas._ctx;
+		this.toLine = d3.line()
+				.curve(d3.curveLinear)
+				.x(function(d){
+					return d.LayerPoint.x;
+				})
+				.y(function(d){
+					return d.LayerPoint.y;
+				})
+				.context(this.context);
+
+
+		//this.createLinesCanvas(data);
 		
 		var that = this;
+
+
 		//this.map.on("viewreset", this.update.bind(that));
 		this.map.on("moveend", this.update.bind(that));
 		var comboBox = this.createComboBox();
 		comboBox._container.firstChild.addEventListener("change", this.changeComboBox.bind(that));
-		this.createLegend2();
+
 		
 	}
+	createLinesCanvas(data)
+	{
+		var that = this;
+		
+		
+		data.forEach(function(d){
+			d.trajetoria.forEach(function(e){
+				e.LayerPoint = that.map.latLngToLayerPoint(e.LatLng);
+			})  
+		});
+		
+		this.domainSelected = [
+		    d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		    d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+		];
+
+		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+        .domain(this.domainSelected);
+	
+		
+		this.dataBinding = this.dataContainer.selectAll("custom.linha")
+    		.data(data);
+    	
+    	this.dataBinding.exit().remove();
+
+    	this.dataBinding.enter()
+	      .append("custom")
+	      .classed("linha", true);
+
+	    var auxRect =  this.dataContainer.selectAll("custom.linha");
+
+	    this.smallLines = auxRect.selectAll("custom.line").data(that.createsegments);
+	    
+	    this.smallLines.each(function(d,i)
+	    {
+	    	d3.select(this)
+				.attr("cor", that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) );
+	    });
+	    this.smallLines.enter().append("custom").classed("line", true).each(function(d,i)
+	    {
+	    	d3.select(this)
+				.attr("cor", that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) );
+	    });
+
+	    this.smallLines.exit().remove();
+
+	   	this.context.clearRect(0, 0, that.width, that.heightCanvas);
+	    this.drawCanvas();	
+	    
+	   	if(!this.init){
+			this.createLegend2();
+			this.init = true;
+		}
+	}
+
+	drawCanvas() {
+		var that = this;
+
+	  var elements = this.dataContainer.selectAll("custom.line");
+	  elements.each(function(d) {
+	    var node = d3.select(this);
+	    
+	    that.context.beginPath();
+	    that.toLine(d);
+	     that.context.lineWidth = 1.5;
+		  that.context.strokeStyle = node.attr("cor");
+		  that.context.stroke();
+
+	    that.context.closePath();
+
+	  });
+
+	}
+
 	changeComboBox(select){
 		this.Selected = select.target.value;
-		debugger;
 		var that = this;
 		
 		
@@ -211,8 +306,11 @@ class MapL{
 						pt.y +")";
 					}
 				)
-			*/		
-				this.segments.attr("d", that.toLine)
+			*/	
+			
+			this.createLinesCanvas(this.selectedIDS);
+				
+			//	this.segments.attr("d", that.toLine)
       				
 	}
 
@@ -352,7 +450,11 @@ class MapL{
 	}
 
 	setDomainRange(datafiltered){
-		var that = this;
+		
+		this.selectedIDS = datafiltered;
+		this.createLinesCanvas(datafiltered);
+		
+		/*var that = this;
 		this.selectedIDS = datafiltered;
 		//this.featureL.remove();
 		
@@ -372,7 +474,7 @@ class MapL{
       	let enteredSegments = this.segments.enter().append("path");
       	this.segments.merge(enteredSegments).attr("d", that.toLine)
       				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
-
+		*/
 		this.map.legend.setContent();	
 	}
 

@@ -158,7 +158,7 @@ function readData(){
 				
 			    if(this.callerID === "canvas"){
 
-					line_chart.setDomainRange(this.datafiltered);
+					//line_chart.setDomainRange(this.datafiltered);
 					map.setDomainRange(this.datafiltered);
 				}
 			    if(this.callerID === "barchart1"){
@@ -186,9 +186,9 @@ function readData(){
 			document.body.appendChild(div);
 			var t = document.body.clientWidth; 
 			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 340);
-
-			novoGannt.setData(data,configData.nomes);
 			novoGannt.dispatcher = myDispatcher;
+			novoGannt.setData(data,configData.nomes);
+
 
 
 
