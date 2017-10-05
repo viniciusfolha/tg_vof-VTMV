@@ -13,11 +13,11 @@ class MapL{
 
 		this.map = L.map(id).setView([-22.906323, -43.182386], 12);
 		var mapLink =  '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-		        L.tileLayer(
-		            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		            attribution: '&copy; ' + mapLink + ' Contributors',
-		            maxZoom: 18,
-		            }).addTo(this.map);
+		L.tileLayer(
+			'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; ' + mapLink + ' Contributors',
+				maxZoom: 18,
+			}).addTo(this.map);
 
 		L.svg().addTo(this.map);	
 		this.svg = d3.select("#map").select("svg");
@@ -70,14 +70,14 @@ class MapL{
 		this.Selected = this.configData.nomes[0];
 		this.context = this.canvas._ctx;
 		this.toLine = d3.line()
-				.curve(d3.curveLinear)
-				.x(function(d){
-					return d.LayerPoint.x;
-				})
-				.y(function(d){
-					return d.LayerPoint.y;
-				})
-				.context(this.context);
+		.curve(d3.curveLinear)
+		.x(function(d){
+			return d.LayerPoint.x;
+		})
+		.y(function(d){
+			return d.LayerPoint.y;
+		})
+		.context(this.context);
 
 
 		//this.createLinesCanvas(data);
@@ -104,65 +104,76 @@ class MapL{
 		});
 		
 		this.domainSelected = [
-		    d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
-		    d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+		d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
 
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-        .domain(this.domainSelected);
-	
+		.domain(this.domainSelected);
+
 		
 		this.dataBinding = this.dataContainer.selectAll("custom.linha")
-    		.data(data);
-    	
-    	this.dataBinding.exit().remove();
+		.data(data);
 
-    	this.dataBinding.enter()
-	      .append("custom")
-	      .classed("linha", true);
+		this.dataBinding.exit().remove();
 
-	    var auxRect =  this.dataContainer.selectAll("custom.linha");
+		this.dataBinding.enter()
+		.append("custom")
+		.classed("linha", true);
 
-	    this.smallLines = auxRect.selectAll("custom.line").data(that.createsegments);
-	    
-	    this.smallLines.each(function(d,i)
-	    {
-	    	d3.select(this)
-				.attr("cor", that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) );
-	    });
-	    this.smallLines.enter().append("custom").classed("line", true).each(function(d,i)
-	    {
-	    	d3.select(this)
-				.attr("cor", that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) );
-	    });
+		var auxRect =  this.dataContainer.selectAll("custom.linha");
 
-	    this.smallLines.exit().remove();
+		this.smallLines = auxRect.selectAll("custom.line").data(that.createsegments);
 
-	   	this.context.clearRect(0, 0, that.width, that.heightCanvas);
-	    this.drawCanvas();	
-	    
-	   	if(!this.init){
+		this.smallLines.each(function(d,i)
+		{
+			d3.select(this)
+			.attr("cor", that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) );
+		});
+		this.smallLines.enter().append("custom").classed("line", true).each(function(d,i)
+		{
+			d3.select(this)
+			.attr("cor", that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) );
+		});
+
+		this.smallLines.exit().remove();
+		this.clearCanvas();
+		this.context.clearRect(0, 0, that.width, that.heightCanvas);
+		this.drawCanvas();	
+
+		if(!this.init){
 			this.createLegend2();
 			this.init = true;
 		}
 	}
 
+	clearCanvas(){
+		this.context.save();
+
+		// Use the identity matrix while clearing the canvas
+		this.context.setTransform(1, 0, 0, 1, 0, 0);
+		this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+
+		// Restore the transform
+		this.context.restore();
+	}
+
 	drawCanvas() {
 		var that = this;
 
-	  var elements = this.dataContainer.selectAll("custom.line");
-	  elements.each(function(d) {
-	    var node = d3.select(this);
-	    
-	    that.context.beginPath();
-	    that.toLine(d);
-	     that.context.lineWidth = 1.5;
-		  that.context.strokeStyle = node.attr("cor");
-		  that.context.stroke();
+		var elements = this.dataContainer.selectAll("custom.line");
+		elements.each(function(d) {
+			var node = d3.select(this);
 
-	    that.context.closePath();
+			that.context.beginPath();
+			that.toLine(d);
+			that.context.lineWidth = 1.5;
+			that.context.strokeStyle = node.attr("cor");
+			that.context.stroke();
 
-	  });
+			that.context.closePath();
+
+		});
 
 	}
 
@@ -172,8 +183,8 @@ class MapL{
 		
 		
 		this.domainSelected = [
-		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[select.target.value]; }); }),
-		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[select.target.value] }); })
+		d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[select.target.value]; }); }),
+		d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[select.target.value] }); })
 		];
 		
 		this.colorScale.domain(this.domainSelected);
@@ -181,58 +192,60 @@ class MapL{
 		this.map.legend.setContent();
 		
 	}
+
 	createCircle(data){
 		var that = this;
 
 		
 		var featureC = this.g.selectAll("g")
-				.data(data)
-				.enter()
-				.append('g')
-				.attr("id", "groupOfCircles")
-				.attr('idObj', function (d) {
-					 return d.idObj;
-				})
-				.style("fill",  function(d) {return that.color(d.idObj); })
-				
+		.data(data)
+		.enter()
+		.append('g')
+		.attr("id", "groupOfCircles")
+		.attr('idObj', function (d) {
+			return d.idObj;
+		})
+		.style("fill",  function(d) {return that.color(d.idObj); })
+
 		this.circleGroup =	featureC.selectAll("circle")
-					.data(function(d) {  return d.trajetoria; })
-					.enter()
-					.append("circle")
-					.style("stroke", "black")  
-					.style("opacity", 1) 
-					.attr("r", 3)
-					.on("mouseover", function(d) {
-						
-						var idObj = this.parentNode.getAttribute("idObj");
-		    			that.info.update(d,idObj,that);
-		    		})
-					.on("mouseout", function(d){
-						that.info.update();
-					})
-					.on("click", function(d){
+		.data(function(d) {  return d.trajetoria; })
+		.enter()
+		.append("circle")
+		.style("stroke", "black")  
+		.style("opacity", 1) 
+		.attr("r", 3)
+		.on("mouseover", function(d) {
+
+			var idObj = this.parentNode.getAttribute("idObj");
+			that.info.update(d,idObj,that);
+		})
+		.on("mouseout", function(d){
+			that.info.update();
+		})
+		.on("click", function(d){
 						//
 					})
-					.attr("pointer-events","visible");  
+		.attr("pointer-events","visible");  
 
-					this.circleGroup.attr("transform", 
-					     function(d) {
-						 var pt = that.map.latLngToLayerPoint(d.LatLng);
-					return "translate("+ 
-						pt.x +","+ 
-						pt.y +")";
-					}
-				)
+		this.circleGroup.attr("transform", 
+			function(d) {
+				var pt = that.map.latLngToLayerPoint(d.LatLng);
+				return "translate("+ 
+				pt.x +","+ 
+				pt.y +")";
+			}
+			)
 
 	}
+
 	reset(){
 		var that = this;
 		
 		this.selectedIDS = this.data;
 		
 		this.domainSelected = [
-		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
-		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+		d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
 		console.log(this.domainSelected)
 
@@ -242,11 +255,11 @@ class MapL{
 		let enteredFeatureL = this.featureL.enter().append("g").attr("class", "lines_group");
 
 		this.segments = this.featureL.merge(enteredFeatureL).selectAll("path")
-      				.data(that.createsegments);
-      	this.segments.exit().remove();
-      	let enteredSegments = this.segments.enter().append("path");
-      	this.segments.merge(enteredSegments).attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
+		.data(that.createsegments);
+		this.segments.exit().remove();
+		let enteredSegments = this.segments.enter().append("path");
+		this.segments.merge(enteredSegments).attr("d", that.toLine)
+		.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
 
 		this.map.legend.setContent();	
 		
@@ -254,49 +267,49 @@ class MapL{
 
 	createsegments(values) {
 		
-	  var traj = values.trajetoria
-	  var i = 0, n = traj.length, segments = new Array(n - 1);
-	  while (++i < n) segments[i - 1] = [traj[i - 1], traj[i]];
-	  
-	  return segments;
+		var traj = values.trajetoria
+		var i = 0, n = traj.length, segments = new Array(n - 1);
+		while (++i < n) segments[i - 1] = [traj[i - 1], traj[i]];
+
+		return segments;
 	}
 
 	createLines(){
 		var that = this;
 		this.Selected = this.configData.nomes[0];
 		this.domainSelected = [
-		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
-		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+		d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+		d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
 
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-        .domain(this.domainSelected);
+		.domain(this.domainSelected);
 
-        
+
 		this.toLine = d3.line()
-				.curve(d3.curveLinear)
-				.x(function(d){
-					return that.map.latLngToLayerPoint(d.LatLng).x;
-				})
-				.y(function(d){
-					return that.map.latLngToLayerPoint(d.LatLng).y;
-				});
-				
-		this.featureL = this.gLines.selectAll(".lines_group")
-      			.data(this.data)
-    			.enter().append("g").attr("class","lines_group" );
+		.curve(d3.curveLinear)
+		.x(function(d){
+			return that.map.latLngToLayerPoint(d.LatLng).x;
+		})
+		.y(function(d){
+			return that.map.latLngToLayerPoint(d.LatLng).y;
+		});
 
-    	this.segments = this.featureL.selectAll("path")
-      				.data(that.createsegments)
-      			.enter().append("path")
-      				.attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
+		this.featureL = this.gLines.selectAll(".lines_group")
+		.data(this.data)
+		.enter().append("g").attr("class","lines_group" );
+
+		this.segments = this.featureL.selectAll("path")
+		.data(that.createsegments)
+		.enter().append("path")
+		.attr("d", that.toLine)
+		.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
 
 	}
 
 	update(cnt) {
 		
-			var that = this;
+		var that = this;
 			/*
 			this.circleGroup.attr("transform", 
 					     function(d) {
@@ -306,127 +319,127 @@ class MapL{
 						pt.y +")";
 					}
 				)
-			*/	
-			
-			this.createLinesCanvas(this.selectedIDS);
+				*/	
+
+				this.createLinesCanvas(this.selectedIDS);
 				
 			//	this.segments.attr("d", that.toLine)
-      				
-	}
 
-	createLegend(){
+		}
 
-		this.legend = L.control({position: 'bottomright'});
-		var that = this;
-		this.legend.onAdd = function (map) {
+		createLegend(){
 
-		    var div = L.DomUtil.create('div', 'info legend'),
-		        grades = [],
-		        labels = [];
+			this.legend = L.control({position: 'bottomright'});
+			var that = this;
+			this.legend.onAdd = function (map) {
 
-		        div.id = "legend_id"
-		        div.innerHTML = '<h4>Id Obj:</h4> '
-		        
-		    for (var i = 0; i < that.idsObjs.length; i++) {
+				var div = L.DomUtil.create('div', 'info legend'),
+				grades = [],
+				labels = [];
 
-		        div.innerHTML +=
-		            '<i style="background:' + that.color(that.idsObjs[i]) + '"></i> ' +
-		            that.idsObjs[i] + (that.idsObjs[i+1] ? '<br>' : '');
-		    }
-		    
+				div.id = "legend_id"
+				div.innerHTML = '<h4>Id Obj:</h4> '
 
-		    L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
-		    return div;
-		};
+				for (var i = 0; i < that.idsObjs.length; i++) {
+
+					div.innerHTML +=
+					'<i style="background:' + that.color(that.idsObjs[i]) + '"></i> ' +
+					that.idsObjs[i] + (that.idsObjs[i+1] ? '<br>' : '');
+				}
 
 
-		this.legend.addTo(this.map);
-	}
-	createComboBox(){
-		var that = this;
-		var legend = L.control({position: 'bottomleft'});
-		legend.onAdd = function (map) {
-		    var div = L.DomUtil.create('div', 'comboBox');
-		    
-		    var aux;
-		    for ( var x in that.configData.nomes){
-		     	aux += '<option>' + that.configData.nomes[x] + '</option>';
-		     } 
-		     div.innerHTML = '<select id="comboboxMap">' + aux + '</select>';
-		     
-		    div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
-		    return div;
-		};
-		legend.addTo(this.map);
-		return legend;
-	}
-	createLegend2(){
+				L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+				return div;
+			};
 
-		var that = this;
-		var color = d3.scaleQuantize()
-		  .domain(this.domainSelected)
-		  .range(d3.schemeRdYlGn['8'])
 
-		L.Legend = L.Control.extend({
-		    'onAdd': function (map) {
+			this.legend.addTo(this.map);
+		}
+		createComboBox(){
+			var that = this;
+			var legend = L.control({position: 'bottomleft'});
+			legend.onAdd = function (map) {
+				var div = L.DomUtil.create('div', 'comboBox');
+
+				var aux;
+				for ( var x in that.configData.nomes){
+					aux += '<option>' + that.configData.nomes[x] + '</option>';
+				} 
+				div.innerHTML = '<select id="comboboxMap">' + aux + '</select>';
+
+				div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
+				return div;
+			};
+			legend.addTo(this.map);
+			return legend;
+		}
+		createLegend2(){
+
+			var that = this;
+			var color = d3.scaleQuantize()
+			.domain(this.domainSelected)
+			.range(d3.schemeRdYlGn['8'])
+
+			L.Legend = L.Control.extend({
+				'onAdd': function (map) {
 
 		        // add reference to mapinstance
 		        map.legend = this;
 
-	  			var div = L.DomUtil.create('div', 'info legend2'),
-			        grades = d3.schemeRdYlGn['8'],
-			        labels = [];
+		        var div = L.DomUtil.create('div', 'info legend2'),
+		        grades = d3.schemeRdYlGn['8'],
+		        labels = [];
 
-			        div.id = "legend_id2"
-			        div.innerHTML = '<h4>'+ that.Selected + ':</h4> '
-			       
-			    for (var i = 0; i < grades.length; i++) {
-			    	var aux = color.invertExtent(grades[i]);
+		        div.id = "legend_id2"
+		        div.innerHTML = '<h4>'+ that.Selected + ':</h4> '
 
-			        div.innerHTML +=
-			            '<i style="background:' + grades[i] + '"></i> ' +
-			             aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
-			    }
-			    return div;
+		        for (var i = 0; i < grades.length; i++) {
+		        	var aux = color.invertExtent(grades[i]);
+
+		        	div.innerHTML +=
+		        	'<i style="background:' + grades[i] + '"></i> ' +
+		        	aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
+		        }
+		        return div;
 		    },
 		    'onRemove': function (map) {
 
 		      // remove reference from mapinstance
 		      delete map.legend;
 
-		    },
+		  },
 
 		    // new method for setting innerHTML
 		    'setContent': function() {
-				var grades = d3.schemeRdYlGn['8'];
-				var color = d3.scaleQuantize()
-				  .domain(that.domainSelected)
-				  .range(d3.schemeRdYlGn['8']);
-					        
-				var divinnerHTML = '<h4>'+ that.Selected + ':</h4> ';
-					       
-			    for (var i = 0; i < grades.length; i++) {
-			    	var aux = color.invertExtent(grades[i]);
+		    	var grades = d3.schemeRdYlGn['8'];
+		    	var color = d3.scaleQuantize()
+		    	.domain(that.domainSelected)
+		    	.range(d3.schemeRdYlGn['8']);
 
-			        divinnerHTML +=
-			            '<i style="background:' + grades[i] + '"></i> ' +
-			             aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
-			    }
+		    	var divinnerHTML = '<h4>'+ that.Selected + ':</h4> ';
 
-		        this.getContainer().innerHTML = divinnerHTML;
-		    
+		    	for (var i = 0; i < grades.length; i++) {
+		    		var aux = color.invertExtent(grades[i]);
+
+		    		divinnerHTML +=
+		    		'<i style="background:' + grades[i] + '"></i> ' +
+		    		aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
+		    	}
+
+		    	this.getContainer().innerHTML = divinnerHTML;
+
 		    }
 		});
 
 
-		this.legend2 = that.map.addControl(new L.Legend({position: 'bottomleft'}));
-	}
+			this.legend2 = that.map.addControl(new L.Legend({position: 'bottomleft'}));
+		}
 
-	createInfo(){
-		var that = this;
-	
-		this.info = L.control({position: 'bottomright'});
-		this.info.onAdd = function (map) {
+		createInfo(){
+			var that = this;
+
+			this.info = L.control({position: 'bottomright'});
+			this.info.onAdd = function (map) {
 		    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
 		    this.update();
 		    return this._div;
@@ -437,9 +450,9 @@ class MapL{
 				
 				this._div.innerHTML = '<h4>' + idObj + '</h4>';
 				for ( var x in that.configData.nomes){
-		    		this._div.innerHTML += '<b>'+ that.configData.nomes[x] +' : </b> ' + trajetoria[that.configData.nomes[x]] + '<br />'
-		    	}
-		    	this._div.innerHTML += '<b> Time :</b>' + trajetoria.datahora
+					this._div.innerHTML += '<b>'+ that.configData.nomes[x] +' : </b> ' + trajetoria[that.configData.nomes[x]] + '<br />'
+				}
+				this._div.innerHTML += '<b> Time :</b>' + trajetoria.datahora
 			}else{
 				this._div.innerHTML = '<h4>ID</h4>' + 'Hover over a circle';
 			}
@@ -474,10 +487,10 @@ class MapL{
       	let enteredSegments = this.segments.enter().append("path");
       	this.segments.merge(enteredSegments).attr("d", that.toLine)
       				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
-		*/
-		this.map.legend.setContent();	
-	}
+      				*/
+      				this.map.legend.setContent();	
+      			}
 
 
 
-}
+      		}
