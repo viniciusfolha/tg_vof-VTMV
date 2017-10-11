@@ -43,12 +43,14 @@ class GanttChartCanvas{
 		this.dataContainer = d3.select(detachedContainer);
 		this.brushes = [];
 		this.xScale = d3.scaleTime().range([50, this.width]).clamp(true);
-		this.yScale = d3.scaleTime().range([this.heightCanvas + this.margin.top - this.margin.bottom , this.margin.top ]).clamp(true);
+		//this.yScale = d3.scaleTime().range([this.heightCanvas + this.margin.top - this.margin.bottom , this.margin.top ]).clamp(true);
+		this.yScale = d3.scaleBand().rangeRound([this.heightCanvas + this.margin.top - this.margin.bottom , this.margin.top ]);
 		this.init = true;
 		this.data;
 		this.selectedData = [];
 
 	}
+
 
 	setData(data,opcoes){
 		if(!this.data){
@@ -61,6 +63,7 @@ class GanttChartCanvas{
 			var dt1 = new Date(auxDateDomain[0])
 			var dt2 = new Date(auxDateDomain[1],11,31);
 			this.xScaleCont.domain([dt1,dt2]);
+			
 			this.yScaleCont.domain([ 0 
 				, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
 			this.drawBrushArea();
@@ -74,8 +77,6 @@ class GanttChartCanvas{
 
     		this.newBrush();
     		this.drawBrushes();
-
-
 
     	}else{
 
@@ -92,21 +93,27 @@ class GanttChartCanvas{
 
 
     		this.xScale.domain([new Date(2012, 0, 1), new Date(2012, 11, 31)]);
-
-    		this.yScale.domain([dt1,dt2]);
+    		this.dateToShow = this.dataYear.map(x => x.key)
+    		this.yScale.domain(this.dateToShow);
 
     		this.color  = d3.scaleOrdinal(d3.schemeCategory20b);
-
-    		this.dataBinding = this.dataContainer.selectAll("custom.rect")
+    		if(this.dateToShow.length > 1){
+    			that.heightS = that.yScale(this.dateToShow[0]) - that.yScale(this.dateToShow[1]);
+    		}else if(this.dateToShow.length==1) {
+    			var aux = that.yScale.range();
+    			that.heightS = aux[0] - aux[1];
+    		}else{
+    			return;
+    		}this.dataBinding = this.dataContainer.selectAll("custom.rect")
     		.data(this.dataYear, function(d) { return d; });
 
 	    		// update existing element to have size 15 and fill green
 	    		this.dataBinding
 	    		.attr("x", that.xScale.range()[0])
 	    		.attr("y", function(d, i){
-	    			return that.yScale(new Date(d.key,11,31)) ;	})
+	    			return that.yScale(d.key) ;	})
 	    		.attr("height", function(d, i, e){
-	    			return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); })
+	    			return that.heightS; })
 	    		.attr("width", that.width)
 	    		.attr("fillStyle", function(d, i){ return that.color(i);});
 
@@ -117,9 +124,9 @@ class GanttChartCanvas{
 		  .classed("rect", true)
 		  .attr("x", that.xScale.range()[0])
 		  .attr("y", function(d, i){
-		  	return that.yScale(new Date(d.key,11,31)) ;	})
+		  	return that.yScale(d.key) ;	})
 		  .attr("height", function(d, i, e){
-		  	return (that.yScale(new Date(d.key,0)) - that.yScale(new Date(d.key,11,31))); })
+		  	return that.heightS; })
 		  .attr("width", that.width)
 		  .attr("fillStyle", function(d, i){ return that.color(i);});
 
@@ -139,8 +146,8 @@ class GanttChartCanvas{
 		  	var dtaux1 = new Date(d.dateDomain[1].getTime());
 		  	var width = that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))
 
-		  	var yAuxInit = that.yScale(new Date(year,0)) ;
-		  	var yAuxEnd = that.yScale(new Date(year,11,31));
+		  	var yAuxInit = that.yScale(year) ;
+		  	var yAuxEnd = that.yScale(year) + that.heightS;
 		  	var barHeight = yAuxInit - yAuxEnd;
 		  	barHeight = barHeight/j.length;
 		  	var yprint = yAuxInit - barHeight*(i+1);
@@ -163,8 +170,9 @@ class GanttChartCanvas{
 		  	var dtaux1 = new Date(d.dateDomain[1].getTime());
 		  	var width = that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))
 
-		  	var yAuxInit = that.yScale(new Date(year,0)) ;
-		  	var yAuxEnd = that.yScale(new Date(year,11,31));
+
+		  	var yAuxInit = that.yScale(year) ;
+		  	var yAuxEnd = that.yScale(year) + that.heightS;
 		  	var barHeight = yAuxInit - yAuxEnd;
 		  	barHeight = barHeight/j.length;
 		  	var yprint = yAuxInit - barHeight*(i+1);
@@ -190,6 +198,8 @@ class GanttChartCanvas{
 		}
 
 	}
+
+
 
 
 	newBrush() {
@@ -237,7 +247,7 @@ class GanttChartCanvas{
 		    if (selection && selection[0] !== selection[1]) {
 		    	this.newBrush();
 		    }
-
+		    
 		    // Always draw brushes
 		    this.drawBrushes();
 		}
@@ -335,8 +345,8 @@ class GanttChartCanvas{
 		y1 = that.yScale.range()[1],
 		tickSize = x0 - tickSize,
 		tickPadding = 3,
-		ticks = that.yScale.ticks(tickCount),
-		tickFormat = that.yScale.tickFormat(tickCount);
+		ticks = this.dateToShow;
+		//tickFormat = that.yScale.tickFormat(tickCount);
 
 		that.context.beginPath();
 		ticks.forEach(function(d) {
@@ -358,7 +368,7 @@ class GanttChartCanvas{
 		that.context.textAlign = "right";
 		that.context.textBaseline = "middle";
 		ticks.forEach(function(d) {
-			that.context.fillText(tickFormat(d), tickSize - tickPadding, that.yScale(d));
+			that.context.fillText(d, tickSize - tickPadding, that.yScale(d) + that.heightS/2 );
 		});
 
 		that.context.save();

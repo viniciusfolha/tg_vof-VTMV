@@ -37,7 +37,11 @@ class BarChart{
     this.dados_chart = [];
     this.div;
 
-   
+    this.tip = d3.tip()
+      .attr("class", "d3-tip")
+      .offset([-8, 0])
+      .html(function(d) { return "Lenght: " + d.length; });
+      this.canvas.call(this.tip);
     this.griddone = false;
     this.button;
     this.opcoes;
@@ -51,7 +55,7 @@ class BarChart{
   this.button =  document.createElement("button", {id: "back-button"});
   
 
-
+  this.SelectedIDS;
   }
 
   do_grid(){
@@ -90,6 +94,7 @@ class BarChart{
 
   setData(data,opcoes){
     this.data = data;
+    this.SelectedIDS = data;
     //
     var that = this;
         this.opcoes = opcoes;
@@ -104,15 +109,16 @@ class BarChart{
     }
     this.selectList.onchange = this.changeComboBox.bind(that);
     this.selected = this.opcoes[0];
+    var dataXExtent = d3.extent(this.data.map(function(d){return d["mean_".concat(that.selected)]}));
+    this.xScale.domain(dataXExtent);
 
     const histogram = d3.histogram()
       .value(d => d["mean_".concat(that.selected)])
-      .thresholds(10);
+      .thresholds(this.xScale.ticks(10));
 
     this.dados_chart = histogram(data);
     this.yScale.domain([0, d3.max(that.dados_chart, function(d) { return d.length; })]);
-    var dataXExtent = d3.extent(this.data.map(function(d){return d["mean_".concat(that.selected)]}));
-    this.xScale.domain(dataXExtent);
+
     this.update();
     this.do_grid();
   }
@@ -152,7 +158,9 @@ class BarChart{
         .attr("x", function(d) { return xScale(d.x0)})
         .attr("y", function(d) { return yScale(d.length)})
         .attr("width", function(d) { return xScale(d.x1) - xScale(d.x0) - 1})
-        .attr("height", function(d) { return height - yScale(d.length); });
+        .attr("height", function(d) { return height - yScale(d.length); })
+        .on('mouseover', this.tip.show)
+        .on('mouseout', this.tip.hide);
 
     this.xAxisGroup
             .selectAll("text")  
@@ -193,7 +201,7 @@ class BarChart{
 
   }
   barover(d){
-      
+     /* 
       var that = this;
       var group = this.canvas.append("g")
       .attr("class","tooltip");
@@ -215,7 +223,7 @@ class BarChart{
             .attr("y", that.margin.top + (15*(parseInt(i)+2) ) )
             .style("fontSize", "small")
               .text(x.idObj);});
-    
+    */
       
   }
   barclick(obj){
@@ -267,24 +275,42 @@ class BarChart{
     
     var that = this;
     this.selected   = thisCont.target.value;
+
+    var dataXExtent = d3.extent(this.SelectedIDS.map(function(d){return d["mean_".concat(that.selected)]}));
+    this.xScale.domain(dataXExtent);
     const histogram = d3.histogram()
       .value(d => d["mean_".concat(that.selected)])
-      .thresholds(10);
-    this.dados_chart = histogram(this.data);
+      .thresholds(this.xScale.ticks(10));
+    this.dados_chart = histogram(this.SelectedIDS);
     this.canvas.selectAll(".title").remove();
     this.newBars.remove();
     this.yScale.domain([0, d3.max(that.dados_chart, function(d) { return d.length; })]);
     this.xAxisGroup.selectAll(".xlabel").remove();
     this.yAxisGroup.selectAll(".ylabel").remove();
-    var dataXExtent = d3.extent(this.data.map(function(d){return d["mean_".concat(that.selected)]}));
-    this.xScale.domain(dataXExtent);
-    this.update();
-    
-   
 
-    
+    this.update();
   }
 
+  setNewData(data){
+      var that = this;
+      this.SelectedIDS = data;
+
+      var dataXExtent = d3.extent(this.SelectedIDS.map(function(d){return d["mean_".concat(that.selected)]}));
+      this.xScale.domain(dataXExtent);
+
+      const histogram = d3.histogram()
+        .value(d => d["mean_".concat(that.selected)])
+        .thresholds(this.xScale.ticks(10));
+
+      this.dados_chart = histogram(this.SelectedIDS);
+      this.canvas.selectAll(".title").remove();
+      this.newBars.remove();
+      this.yScale.domain([0, d3.max(that.dados_chart, function(d) { return d.length; })]);
+      this.xAxisGroup.selectAll(".xlabel").remove();
+      this.yAxisGroup.selectAll(".ylabel").remove();
+
+      this.update();
+  }
 
 
 }  

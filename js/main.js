@@ -74,6 +74,18 @@ function readData(){
 			var color  = d3.scaleOrdinal(d3.schemeCategory20b);
 
 
+			   var h = document.createElement("H1");
+			    var t = document.createTextNode("VTMV");
+			    h.appendChild(t);
+			    
+
+			var divMenu = document.createElement("div");
+			divMenu.appendChild(h);
+			divMenu.style.height = 50 + 'px';
+			//divMenu.style.width = 100 +'%';
+			divMenu.id = "divMenu";
+			document.body.appendChild(divMenu);
+
 			var div = document.createElement("div");
 			div.style.width = 1200 +'px';
 			div.style.height = 600 + 'px';
@@ -158,8 +170,9 @@ function readData(){
 				
 			    if(this.callerID === "canvas"){
 
-					//line_chart.setDomainRange(this.datafiltered);
+					line_chart.setDomainRange(this.datafiltered);
 					map.setDomainRange(this.datafiltered);
+					bar_chart.setNewData(this.datafiltered);
 				}
 			    if(this.callerID === "barchart1"){
 					if(!this.returnB){

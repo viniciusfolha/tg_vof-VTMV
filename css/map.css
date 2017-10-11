@@ -1,4 +1,38 @@
 
+body {
+    background-color: #d0ccd0;
+        margin-left: 0;
+    margin-right:0;
+    margin-top: 0;
+}
+h1 { color: #888888; font-family: "Sansita one", cursive; font-size: 50px; line-height: 50px; font-weight: normal; margin-bottom: 0px;margin-left: 90px; margin-top: 0px; text-align: left; text-shadow: 0 1px 1px #fff; }
+#divMain{
+            background-color: #4b88a2;
+
+}
+#divMenu{
+    background-color:white;
+    border-bottom: solid #2A4699 10px;
+    background-image: url("logo.png");
+    background-repeat: no-repeat;
+    background-position: left top;
+    background-size: 80px 50px;
+}
+#barchart1{
+
+    background-color: white;
+}
+#linechart1{
+
+        background-color: white;
+}
+#canvas{
+
+    background-color: white;
+}
+#mapMain{
+
+}
 .info {
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
