@@ -529,7 +529,7 @@ class GanttChartCanvas{
 	  }
 
 
-	  brushed() {
+	brushed() {
 	  	console.log("dhsuahd");
 	  	if(this.dispatcher){
 			if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom" && d3.event.sourceEvent.type === "start") return; // ignore brush-by-zoo
@@ -558,5 +558,25 @@ class GanttChartCanvas{
 		}
 
 	}
+
+  	setHighlight(dataToHigh){
+	  	var that = this;
+	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
+			.attr("fillStyle", "black")
+		this.clearCanvas();
+		this.drawCanvas();
+		this.drawxAxis();
+		this.drawyAxis();
+  	}
+
+  	clearHighlight(dataToHigh){
+	  	var that = this;
+	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {debugger; return dataToHigh.some(e => d === e)?this:null;})
+			.attr("fillStyle",function(d){ return that.color(d.dateDomain[0].getFullYear())} );
+		this.clearCanvas();
+		this.drawCanvas();
+				this.drawxAxis();
+		this.drawyAxis();
+  	}
 
 }

@@ -77,12 +77,18 @@ class LineChart{
 
 
     	//
-  		this.selectList = document.createElement("select");
-  		this.selectList.style.position = "absolute";
+    	this.selectedX;
+  		this.selectListY = document.createElement("select");
+  		this.selectListY.style.position = "absolute";
 	
-  		this.selectList.style = "position: absolute; top: 10px;right: 5px;";
-  		this.selectList.id = "comboboxLine";
+  		this.selectListY.style = "position: absolute; top: 10px;right: 0px;";
+  		this.selectListY.id = "comboboxLine";
 
+  		this.selectListX = document.createElement("select");
+  		this.selectListX.style.position = "absolute";
+	
+  		this.selectListX.style = "position: absolute; top: 40px;right: 0px;";
+  		this.selectListX.id = "comboboxLine";
 
 	}
 
@@ -149,16 +155,28 @@ class LineChart{
         var that = this;
         var div = document.getElementById(this.id);
         
-        div.appendChild(this.selectList);
-        
+        div.appendChild(this.selectListX);
+        div.appendChild(this.selectListY);
 	    for (var i = 0; i < this.opcoes.length; i++) {
-	        var option = document.createElement("option");
-	        option.value = this.opcoes[i];
-	        option.text = this.opcoes[i];
-	        this.selectList.appendChild(option);
+	        var optionY = document.createElement("option");
+	        optionY.value = this.opcoes[i];
+	        optionY.text = this.opcoes[i];
+	        var optionX = document.createElement("option");
+	        optionX.value = this.opcoes[i];
+	        optionX.text = this.opcoes[i];
+	        this.selectListY.appendChild(optionY);
+	        this.selectListX.appendChild(optionX);
 	    }
+	    var optionX = document.createElement("option");
+	        optionX.value = "novadata";
+	        optionX.text = "Time";
+	    this.selectedX = "novadata";
+	    this.selectListX.appendChild(optionX);
+	    this.selectListX.selectedIndex = opcoes.length;
+	    this.selectListX.onchange = this.changeComboBoxX.bind(that);
+	    
 	    this.selectedIDS = data;
-	    this.selectList.onchange = this.changeComboBox.bind(that);
+	    this.selectListY.onchange = this.changeComboBox.bind(that);
 
 	    this.data.forEach(function(d){d.trajetoria.forEach(function(e){
 	    	e.novadata = new Date(e.datahora);
@@ -181,7 +199,7 @@ class LineChart{
 	    this.zScale.domain(this.data.map(function(c) { return c.idObj; }));
 
 
-	    this.xAxis = d3.axisBottom(this.xScale);
+	    this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%b"));
 
 	 	var xScale = this.xScale;
 	 	var yScale = this.yScale;
@@ -196,7 +214,7 @@ class LineChart{
 
   	changeComboBox(thisCont){
 
-  		this.selected   = thisCont.target.value;
+  		this.selected = thisCont.target.value;
 
   		this.yScale.domain([
 		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[thisCont.target.value]; }); }),
@@ -223,6 +241,47 @@ class LineChart{
                         .duration(50)
           				.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
+  	}
+
+  	changeComboBoxX(thisCont){
+  		this.selectedX = thisCont.target.value;
+  		console.log()
+  		var that = this;
+  		if(this.selectedX == "novadata"){
+  			this.xScale = d3.scaleTime().rangeRound([0, this.totalWidth]).clamp(true);
+
+			this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%b"));
+  		}else{
+  			this.xScale = d3.scaleLinear().range([0, this.totalWidth]).clamp(true);
+
+			this.xAxis = d3.axisBottom(this.xScale);
+
+  		}
+
+	  	this.xScale.domain([
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[thisCont.target.value]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[thisCont.target.value]; }); })
+		]);
+		
+		var xScale = this.xScale;
+		var yScale = this.yScale;
+		this.toline = d3.line()
+	   		.x(function(d) {  return xScale(d[that.selectedX]); })
+		    .y(function(d) {  return yScale(d[that.selected]); });
+  		this.xAxis.scale(this.xScale);
+	    this.xAxisGroup.call(this.xAxis);
+
+	    this.yAxis.scale(this.yScale);
+	    this.yAxisGroup.call(this.yAxis);
+	    
+
+		this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
+		this.myLines.exit().remove();
+		this.myLines.enter().append("path");
+		this.myLines.transition()
+	                        .duration(50)
+	          				.attr("d", function(d) { return that.toline(d.trajetoria)})
+		      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
   	}
 
   	update(){
@@ -306,11 +365,18 @@ class LineChart{
 		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selected]; }); })
 	]);
 
+
+  	this.xScale.domain([
+		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selectedX]; }); }),
+		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selectedX]; }); })
+	]);
+
+
     this.yAxis.scale(this.yScale);
 	this.yAxisGroup.call(this.yAxis);
 
 	this.toline = d3.line()
-	   		.x(function(d) { d.novadata = new Date(d.datahora).setYear(2000);  return that.xScale(d.novadata); })
+	   		.x(function(d) {  return that.xScale(d[that.selectedX]); })
 		    .y(function(d) {  return that.yScale(d[that.selected]); });
 
 	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
@@ -320,5 +386,23 @@ class LineChart{
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
 
   	
+  }
+
+  setHighlight(dataToHigh){
+  	var that = this;
+  	var test =  d3.select(".line_chart").selectAll("path").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
+  		.transition()
+  		.style("stroke-dasharray", "5")
+  		.style("stroke-width", "2")
+  		.style("stroke", "black");  
+  		
+  }
+  clearHighlight(dataToHigh){
+  	var that = this;
+  	d3.select(".line_chart").selectAll("path").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
+  		.transition()
+  		.style("stroke-width", "1")
+  		.style("stroke-dasharray", "0")
+	    .style("stroke", function(d) { return that.zScale (d.idObj); });
   }
 }

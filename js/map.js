@@ -488,9 +488,25 @@ class MapL{
       	this.segments.merge(enteredSegments).attr("d", that.toLine)
       				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
       				*/
-      				this.map.legend.setContent();	
-      			}
+    	this.map.legend.setContent();	
+    }
+
+    setHighlight(dataToHigh){
+    	var that = this;
+    	console.log(dataToHigh);
+    	dataToHigh.forEach(function(d){
+    		that.context.beginPath();
+		  that.toLine(d.trajetoria);
+		  that.context.lineWidth = 2;
+		  that.context.strokeStyle = "black";
+		  that.context.stroke();
+	
+    	});
+    	  
+    }
+    clearHighlight(){
+    	this.createLinesCanvas(this.selectedIDS);
+    }
 
 
-
-      		}
+}

@@ -9,7 +9,7 @@ class BarChart{
     this.y = y;
     this.totalWidth  = width;
     this.totalHeight = height;
-    this.width = this.totalWidth - this.margin.left - this.margin.right;
+    this.width = this.totalWidth ;
     this.height = this.totalHeight - this.margin.top - this.margin.bottom;
     this.selectedIDS;
 
@@ -159,8 +159,8 @@ class BarChart{
         .attr("y", function(d) { return yScale(d.length)})
         .attr("width", function(d) { return xScale(d.x1) - xScale(d.x0) - 1})
         .attr("height", function(d) { return height - yScale(d.length); })
-        .on('mouseover', this.tip.show)
-        .on('mouseout', this.tip.hide);
+        .on('mouseover', function(d){ that.tip.show(d); that.dispatcher.apply("selectionChanged",{callerID:that.id, returnB : false ,datafiltered: d}); })
+        .on('mouseout', function(d){that.tip.hide(d); that.dispatcher.apply("selectionChanged",{callerID:that.id, returnB : true ,datafiltered: d}); });
 
     this.xAxisGroup
             .selectAll("text")  

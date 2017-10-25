@@ -122,7 +122,7 @@ function readData(){
 	    				.attr("width","500")
 	    				.attr("height","300");
 
-			var bar_chart = new BarChart("barchart1",mySVG,0,10,400,278);
+			var bar_chart = new BarChart("barchart1",mySVG,0,10,450,278);
 
 
 			var div = document.createElement("div");
@@ -176,11 +176,13 @@ function readData(){
 				}
 			    if(this.callerID === "barchart1"){
 					if(!this.returnB){
-						map.setDomainRange(this.datafiltered);
-						line_chart.setDomainRange(this.datafiltered);
+						map.setHighlight(this.datafiltered);
+						line_chart.setHighlight(this.datafiltered);
+						novoGannt.setHighlight(this.datafiltered);
 					}else{
-						map.reset();
-						line_chart.reset();
+						map.clearHighlight();
+						line_chart.clearHighlight(this.datafiltered);
+						novoGannt.clearHighlight(this.datafiltered);
 					}
 
 			    }
