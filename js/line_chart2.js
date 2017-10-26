@@ -390,19 +390,19 @@ class LineChart{
 
   setHighlight(dataToHigh){
   	var that = this;
-  	var test =  d3.select(".line_chart").selectAll("path").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
-  		.transition()
-  		.style("stroke-dasharray", "5")
-  		.style("stroke-width", "2")
-  		.style("stroke", "black");  
+	this.highL = this.canvas.append("g")
+  			.attr("class", "line_chartHigh");
+  	var high = this.canvas.select(".line_chartHigh").selectAll("path").data(dataToHigh);
+  	let enteredLines = high.enter().append("path");
+  	high.merge(enteredLines)
+  		.attr("d", function(d) { return that.toline(d.trajetoria)})
+	    .attr("fill", "none")
+    	.style("stroke","black");   
   		
   }
+
   clearHighlight(dataToHigh){
   	var that = this;
-  	d3.select(".line_chart").selectAll("path").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
-  		.transition()
-  		.style("stroke-width", "1")
-  		.style("stroke-dasharray", "0")
-	    .style("stroke", function(d) { return that.zScale (d.idObj); });
+  	this.highL.remove();
   }
 }

@@ -180,7 +180,7 @@ function readData(){
 						line_chart.setHighlight(this.datafiltered);
 						novoGannt.setHighlight(this.datafiltered);
 					}else{
-						map.clearHighlight();
+						map.clearHighlight(this.datafiltered);
 						line_chart.clearHighlight(this.datafiltered);
 						novoGannt.clearHighlight(this.datafiltered);
 					}

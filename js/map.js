@@ -104,8 +104,8 @@ class MapL{
 		});
 		
 		this.domainSelected = [
-		d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
-		d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
+			d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
+			d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
 
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
@@ -138,7 +138,7 @@ class MapL{
 
 		this.smallLines.exit().remove();
 		this.clearCanvas();
-		this.context.clearRect(0, 0, that.width, that.heightCanvas);
+		//this.context.clearRect(0, 0, that.width, that.heightCanvas);
 		this.drawCanvas();	
 
 		if(!this.init){
@@ -493,19 +493,18 @@ class MapL{
 
     setHighlight(dataToHigh){
     	var that = this;
-    	console.log(dataToHigh);
     	dataToHigh.forEach(function(d){
     		that.context.beginPath();
 		  that.toLine(d.trajetoria);
-		  that.context.lineWidth = 2;
 		  that.context.strokeStyle = "black";
 		  that.context.stroke();
 	
     	});
     	  
     }
-    clearHighlight(){
-    	this.createLinesCanvas(this.selectedIDS);
+
+    clearHighlight(dataToHigh){
+		this.drawCanvas();
     }
 
 

@@ -562,21 +562,40 @@ class GanttChartCanvas{
   	setHighlight(dataToHigh){
 	  	var that = this;
 	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
-			.attr("fillStyle", "black")
-		this.clearCanvas();
-		this.drawCanvas();
-		this.drawxAxis();
-		this.drawyAxis();
+			.attr("fillStyle", "black");
+
+		test.each(function(d) {
+			var node = d3.select(this);
+
+			that.context.beginPath();
+			var t =  d3.color(node.attr("fillStyle"));
+			that.context.fillStyle = t;
+			that.context.rect(node.attr("x"), node.attr("y"), node.attr("width"), node.attr("height"));
+			that.context.fill();
+			that.context.closePath();
+
+		});
+		//this.clearCanvas();
+		//this.drawCanvas();
+		//this.drawxAxis();
+		//this.drawyAxis();
   	}
 
   	clearHighlight(dataToHigh){
 	  	var that = this;
 	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {debugger; return dataToHigh.some(e => d === e)?this:null;})
 			.attr("fillStyle",function(d){ return that.color(d.dateDomain[0].getFullYear())} );
-		this.clearCanvas();
-		this.drawCanvas();
-				this.drawxAxis();
-		this.drawyAxis();
+		test.each(function(d) {
+			var node = d3.select(this);
+
+			that.context.beginPath();
+			var t =  d3.color(node.attr("fillStyle"));
+			that.context.fillStyle = t;
+			that.context.rect(node.attr("x"), node.attr("y"), node.attr("width"), node.attr("height"));
+			that.context.fill();
+			that.context.closePath();
+
+		});
   	}
 
 }
