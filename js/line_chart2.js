@@ -397,6 +397,8 @@ class LineChart{
   	high.merge(enteredLines)
   		.attr("d", function(d) { return that.toline(d.trajetoria)})
 	    .attr("fill", "none")
+	    .attr("stroke-dasharray", "2")
+	    .attr("stroke-width","3")
     	.style("stroke","black");   
   		
   }
