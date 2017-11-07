@@ -159,8 +159,8 @@ class BarChart{
         .attr("y", function(d) { return yScale(d.length)})
         .attr("width", function(d) { return xScale(d.x1) - xScale(d.x0) - 1})
         .attr("height", function(d) { return height - yScale(d.length); })
-        .on('mouseover', function(d){ that.tip.show(d); that.dispatcher.apply("selectionChanged",{callerID:that.id, returnB : false ,datafiltered: d}); })
-        .on('mouseout', function(d){that.tip.hide(d); that.dispatcher.apply("selectionChanged",{callerID:that.id, returnB : true ,datafiltered: d}); });
+        .on('mouseover', function(d){ that.tip.show(d); that.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf : "Highlight" ,datafiltered: d}); })
+        .on('mouseout', function(d){that.tip.hide(d); that.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf : "Nadir" ,datafiltered: d}); });
 
     this.xAxisGroup
             .selectAll("text")  
@@ -228,9 +228,10 @@ class BarChart{
   }
   barclick(obj){
         var that = this;
-
-        this.selectedIDS = obj;
-
+        if(this.button)
+        {
+            this.button.remove();
+        }
         this.button =  document.createElement("button", {id: "back-button"});
         this.button.setAttribute('content', 'text content');
         this.button.setAttribute('class', 'btn');
@@ -239,8 +240,7 @@ class BarChart{
         this.button.onclick = this.returnB.bind(this);
         this.div.appendChild(this.button);
         if(this.dispatcher)
-          this.dispatcher.apply("selectionChanged",{callerID:that.id, returnB : false ,datafiltered: that.selectedIDS})
-
+          this.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf : "clickOn" ,datafiltered: obj})
 
       
        
@@ -252,7 +252,7 @@ class BarChart{
     
       //Retorno a tela anterior, remove o botaoe muda o combobox
       if(this.dispatcher)
-          this.dispatcher.apply("selectionChanged",{callerID:that.id, returnB: true})
+          this.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf: "clickOff", datafiltered: that.SelectedIDS})
     this.button.remove();
     
 

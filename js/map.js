@@ -118,8 +118,13 @@ class MapL{
 		this.dataBinding.exit().remove();
 
 		this.dataBinding.enter()
-		.append("custom")
-		.classed("linha", true);
+			.append("custom")
+			.classed("linha", true)
+			.attr("cx", function(d){return d.trajetoria[0].LayerPoint.x})
+			.attr("cy", function(d){return d.trajetoria[0].LayerPoint.y});
+
+		this.dataBinding.attr("cx", function(d){return d.trajetoria[0].LayerPoint.x})
+			.attr("cy", function(d){return d.trajetoria[0].LayerPoint.y});
 
 		var auxRect =  this.dataContainer.selectAll("custom.linha");
 
@@ -175,6 +180,15 @@ class MapL{
 
 		});
 
+		var circles = this.dataContainer.selectAll("custom.linha");
+		circles.each(function(d){
+			var node = d3.select(this);
+			that.context.beginPath();
+			that.context.arc(node.attr("cx"), node.attr("cy"), 4, 0, 2 * Math.PI, false);
+			that.context.fillStyle = 'steelblue';
+      		that.context.fill();
+		});
+
 	}
 
 	changeComboBox(select){
@@ -188,9 +202,9 @@ class MapL{
 		];
 		
 		this.colorScale.domain(this.domainSelected);
-		this.segments.style("stroke", function(d) {return that.colorScale( (d[0][select.target.value] + d[1][select.target.value])/2 ) })
-		this.map.legend.setContent();
-		
+		this.createLinesCanvas(this.selectedIDS);
+    	this.map.legend.setContent();	
+	
 	}
 
 	createCircle(data){
@@ -494,6 +508,12 @@ class MapL{
     setHighlight(dataToHigh){
     	var that = this;
     	dataToHigh.forEach(function(d){
+			d.trajetoria.forEach(function(e){
+				e.LayerPoint = that.map.latLngToLayerPoint(e.LatLng);
+			})  
+		});
+		
+    	dataToHigh.forEach(function(d){
     		that.context.beginPath();
 		  that.toLine(d.trajetoria);
 		  that.context.strokeStyle = "black";
@@ -504,8 +524,13 @@ class MapL{
     }
 
     clearHighlight(dataToHigh){
+    	this.clearCanvas();
 		this.drawCanvas();
     }
 
+    createCircle(data){
+    	this.selectedIDS = data;
+    	this.createLinesCanvas(data);
+    }
 
 }

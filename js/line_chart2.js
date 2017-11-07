@@ -76,6 +76,12 @@ class LineChart{
 		this.newLines;
 
 
+		this.tip = d3.tip()
+	      .attr("class", "d3-tip")
+	      .offset([-8, 0])
+	      .html(function(d) {return "ID: " + d.idObj ; });
+	    this.canvas.call(this.tip);
+
     	//
     	this.selectedX;
   		this.selectListY = document.createElement("select");
@@ -241,11 +247,22 @@ class LineChart{
                         .duration(50)
           				.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
+
+
+	this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(this.selectedIDS);
+	let enteredCircle = this.highCircle.enter().append("circle");
+	this.highCircle.exit().remove();
+	this.highCircle.merge(enteredCircle)
+		.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
+		.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
+		.attr("r", function (d) { return 5; })
+		.style("fill", function(d) { return "steelblue" })
+		.on('mouseover', function(d){ that.tip.show(d);})
+		.on('mouseout', function(d){that.tip.hide(d);});
   	}
 
   	changeComboBoxX(thisCont){
   		this.selectedX = thisCont.target.value;
-  		console.log()
   		var that = this;
   		if(this.selectedX == "novadata"){
   			this.xScale = d3.scaleTime().rangeRound([0, this.totalWidth]).clamp(true);
@@ -282,6 +299,18 @@ class LineChart{
 	                        .duration(50)
 	          				.attr("d", function(d) { return that.toline(d.trajetoria)})
 		      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
+
+		this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(this.selectedIDS);
+  		let enteredCircle = this.highCircle.enter().append("circle");
+  		this.highCircle.exit().remove();
+  		this.highCircle.merge(enteredCircle)
+  			.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
+			.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
+			.attr("r", function (d) { return 5; })
+			.style("fill", function(d) { return "steelblue" })
+			.on('mouseover', function(d){ that.tip.show(d);})
+			.on('mouseout', function(d){that.tip.hide(d);});
+
   	}
 
   	update(){
@@ -407,4 +436,36 @@ class LineChart{
   	var that = this;
   	this.highL.remove();
   }
+
+    createCircle(data){
+    	var that = this;
+    	this.selectedIDS = data;
+    	data.forEach(function(d){d.trajetoria = d.trajetoria.sort(function(a,b){return a.datahora - b.datahora})});
+
+    	var circle = this.canvas.append("g")
+  			.attr("class", "circle_click");
+
+  		this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(data);
+  		let enteredCircle = this.highCircle.enter().append("circle");
+  		this.highCircle.exit().remove();
+  		this.highCircle.merge(enteredCircle)
+  			.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
+			.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
+			.attr("r", function (d) { return 5; })
+			.style("fill", function(d) { return "steelblue" })
+			.on('mouseover', function(d){ that.tip.show(d);})
+			.on('mouseout', function(d){that.tip.hide(d);});
+
+
+		this.myLines = this.canvas.select(".line_chart").selectAll("path").data(data);
+		this.myLines.exit().remove();
+		let enteredLines = this.myLines.enter().append("path");
+		this.myLines.merge(enteredLines).attr("d", function(d) { return that.toline(d.trajetoria)})
+		      				.style("stroke", function(d) { return that.zScale (d.idObj); });           
+
+    }
+    removeCircle(){
+    	this.canvas.select(".circle_click").remove();
+    }
+
 }

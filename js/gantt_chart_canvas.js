@@ -1,7 +1,7 @@
 class GanttChartCanvas{
 	constructor(divId,x,y,width,height){
 		this.id = divId;
-		this.margin = {top: 10, right: 2, bottom: 25, left: 2};  
+		this.margin = {top: 10, right: 10, bottom: 25, left: 3};  
 		this.x = x;
 		this.y = y;
 		this.totalWidth  = width;
@@ -203,6 +203,7 @@ class GanttChartCanvas{
 
 
 	newBrush() {
+		var that = this;
 		var brush = d3.brushX()
 		.extent([[50, 4], [this.width, this.brushHeight - 17]])
 		.on("start", brushstart)
@@ -210,6 +211,25 @@ class GanttChartCanvas{
 		.on("end", brushend.bind(this));
 
 		this.brushes.push({id: this.brushes.length, brush: brush});
+		if(this.brushes.length==1){
+				var brushSelection = this.gBrush
+					.selectAll('.brush')
+					.data(this.brushes, function (d){return d.id});
+
+				// Set up new brushes
+				brushSelection.enter()
+				.insert("g", '.brush')
+				.attr('class', 'brush')
+				.attr('id', function(brush){ return "brush-" + brush.id; })
+				.each(function(brushObject) {
+				      //call the brush
+
+				      brushObject.brush(d3.select(this));
+
+				      if (brushObject.id === 0) {
+				      brushObject.brush.move(d3.select(this), [that.width - 100, that.width]);};
+			})
+		}
 
 		function brushstart() {
     		// your stuff here
@@ -247,7 +267,7 @@ class GanttChartCanvas{
 		    if (selection && selection[0] !== selection[1]) {
 		    	this.newBrush();
 		    }
-		    
+		    		
 		    // Always draw brushes
 		    this.drawBrushes();
 		}
@@ -446,7 +466,7 @@ class GanttChartCanvas{
 
 		});
 	}
-
+/*
 	zoomed() {
 	  	if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush" && d3.event.sourceEvent.type === "start") return; // ignore zoom-by-brush
 	  	console.log("aqui nao");
@@ -527,10 +547,9 @@ class GanttChartCanvas{
 	  	this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
 
 	  }
-
+*/
 
 	brushed() {
-	  	console.log("dhsuahd");
 	  	if(this.dispatcher){
 			if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom" && d3.event.sourceEvent.type === "start") return; // ignore brush-by-zoo
 			var that = this;
@@ -575,6 +594,7 @@ class GanttChartCanvas{
 			that.context.closePath();
 
 		});
+
 		//this.clearCanvas();
 		//this.drawCanvas();
 		//this.drawxAxis();
@@ -583,7 +603,7 @@ class GanttChartCanvas{
 
   	clearHighlight(dataToHigh){
 	  	var that = this;
-	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {debugger; return dataToHigh.some(e => d === e)?this:null;})
+	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
 			.attr("fillStyle",function(d){ return that.color(d.dateDomain[0].getFullYear())} );
 		test.each(function(d) {
 			var node = d3.select(this);
@@ -596,6 +616,8 @@ class GanttChartCanvas{
 			that.context.closePath();
 
 		});
+	
   	}
+
 
 }

@@ -175,14 +175,21 @@ function readData(){
 					bar_chart.setNewData(this.datafiltered);
 				}
 			    if(this.callerID === "barchart1"){
-					if(!this.returnB){
+					if(this.typeOf === "Highlight"){
 						map.setHighlight(this.datafiltered);
 						line_chart.setHighlight(this.datafiltered);
 						novoGannt.setHighlight(this.datafiltered);
-					}else{
+					}else if(this.typeOf === "Nadir"){
 						map.clearHighlight(this.datafiltered);
 						line_chart.clearHighlight(this.datafiltered);
 						novoGannt.clearHighlight(this.datafiltered);
+					}else if(this.typeOf === "clickOn"){
+						map.createCircle(this.datafiltered);
+						line_chart.createCircle(this.datafiltered);
+					}else{
+						line_chart.removeCircle();
+						line_chart.setDomainRange(this.datafiltered);
+						map.setDomainRange(this.datafiltered);
 					}
 
 			    }
