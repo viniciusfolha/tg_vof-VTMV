@@ -79,7 +79,11 @@ class LineChart{
 		this.tip = d3.tip()
 	      .attr("class", "d3-tip")
 	      .offset([-8, 0])
-	      .html(function(d) {return "ID: " + d.idObj ; });
+	      .html(function(d) {
+	      	return "ID: " + d.idObj 
+	      	+ "<br/> Start Date: " + d.dateDomain[0].toLocaleString() 
+	      	+ " <br/> End Date: " + d.dateDomain[1].toLocaleString() 
+	      	; });
 	    this.canvas.call(this.tip);
 
     	//
@@ -248,17 +252,7 @@ class LineChart{
           				.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
 
-
-	this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(this.selectedIDS);
-	let enteredCircle = this.highCircle.enter().append("circle");
-	this.highCircle.exit().remove();
-	this.highCircle.merge(enteredCircle)
-		.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
-		.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
-		.attr("r", function (d) { return 5; })
-		.style("fill", function(d) { return "steelblue" })
-		.on('mouseover', function(d){ that.tip.show(d);})
-		.on('mouseout', function(d){that.tip.hide(d);});
+	this.printCircle();
   	}
 
   	changeComboBoxX(thisCont){
@@ -300,17 +294,7 @@ class LineChart{
 	          				.attr("d", function(d) { return that.toline(d.trajetoria)})
 		      				.style("stroke", function(d) { return that.zScale (d.idObj); }); 
 
-		this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(this.selectedIDS);
-  		let enteredCircle = this.highCircle.enter().append("circle");
-  		this.highCircle.exit().remove();
-  		this.highCircle.merge(enteredCircle)
-  			.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
-			.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
-			.attr("r", function (d) { return 5; })
-			.style("fill", function(d) { return "steelblue" })
-			.on('mouseover', function(d){ that.tip.show(d);})
-			.on('mouseout', function(d){that.tip.hide(d);});
-
+		this.printCircle();
   	}
 
   	update(){
@@ -445,17 +429,7 @@ class LineChart{
     	var circle = this.canvas.append("g")
   			.attr("class", "circle_click");
 
-  		this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(data);
-  		let enteredCircle = this.highCircle.enter().append("circle");
-  		this.highCircle.exit().remove();
-  		this.highCircle.merge(enteredCircle)
-  			.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
-			.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
-			.attr("r", function (d) { return 5; })
-			.style("fill", function(d) { return "steelblue" })
-			.on('mouseover', function(d){ that.tip.show(d);})
-			.on('mouseout', function(d){that.tip.hide(d);});
-
+		this.printCircle();
 
 		this.myLines = this.canvas.select(".line_chart").selectAll("path").data(data);
 		this.myLines.exit().remove();
@@ -466,6 +440,21 @@ class LineChart{
     }
     removeCircle(){
     	this.canvas.select(".circle_click").remove();
+    }
+    printCircle()
+    {
+    	var that = this;
+    	this.highCircle = this.canvas.select(".circle_click").selectAll("circle").data(this.selectedIDS);
+  		let enteredCircle = this.highCircle.enter().append("circle");
+  		this.highCircle.exit().remove();
+  		this.highCircle.merge(enteredCircle)
+  			.attr("cx", function (d) { return that.xScale(d.trajetoria[0][that.selectedX]); })
+			.attr("cy", function (d) { return that.yScale(d.trajetoria[0][that.selected]); })
+			.attr("r", function (d) { return 5; })
+			.style("fill", function(d) { return "steelblue" })
+			.on('mouseover', function(d){ that.tip.show(d);  that.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf : "Highlight" ,datafiltered: d});    })
+			.on('mouseout', function(d){that.tip.hide(d);   that.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf : "Nadir" ,datafiltered: d});   });
+
     }
 
 }

@@ -169,12 +169,12 @@ function readData(){
 	    	myDispatcher.on("selectionChanged", function(){
 				
 			    if(this.callerID === "canvas"){
-
+			    							line_chart.removeCircle();
 					line_chart.setDomainRange(this.datafiltered);
 					map.setDomainRange(this.datafiltered);
 					bar_chart.setNewData(this.datafiltered);
 				}
-			    if(this.callerID === "barchart1"){
+			    else if(this.callerID === "barchart1"){
 					if(this.typeOf === "Highlight"){
 						map.setHighlight(this.datafiltered);
 						line_chart.setHighlight(this.datafiltered);
@@ -192,13 +192,22 @@ function readData(){
 						map.setDomainRange(this.datafiltered);
 					}
 
+			    }else{
+			    	if(this.typeOf === "Highlight"){	    		
+						map.setHighlight([this.datafiltered]);
+						novoGannt.setHighlight([this.datafiltered]);
+					}else if(this.typeOf === "Nadir"){
+						map.clearHighlight([this.datafiltered]);
+						novoGannt.clearHighlight([this.datafiltered]);
+					}
 			    }
+
 				
 
 				
 			});
 	    	map.dispatcher - myDispatcher;
-	    	//gantt_chart.dispatcher = myDispatcher;
+	    	line_chart.dispatcher = myDispatcher;
 	    	bar_chart.dispatcher = myDispatcher;
 	    	
 
