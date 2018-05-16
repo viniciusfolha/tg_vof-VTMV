@@ -28,7 +28,7 @@ function readData(){
 					configData.nomes.forEach(function(e,i){
 						d["mean_".concat(e)] = 0;
 					})
-					d.trajetoria.forEach(function(e){ e.datahora = formatT(e.datahora); 
+					d.trajetoria.forEach(function(e){ e.datahora = formatT(e.datahora);
 													e.LatLng = new L.LatLng(e.latitude, e.longitude);
 													configData.nomes.forEach(function(z,i){
 														d["mean_".concat(z)] += e[z] ; 
@@ -43,7 +43,7 @@ function readData(){
 					})
 					
 
-					d.dateDomain = d3.extent(d.trajetoria.map(function(c){return c.datahora}));  
+					d.dateDomain = d3.extent(d.trajetoria.map(function(c){return c.datahora})); 
 				})
 			}else{
 				data.forEach(function(d){
@@ -105,13 +105,13 @@ function readData(){
 			divG.style.height = 600 + 'px';
 			divG.style.position = "relative";
 			divG.style.display =  "inline";
-			divG.style.height = 600 + 'px';
+			divG.style.width = 620 + 'px';
 			divG.id = "divGraph";
 			divG.style.float='left';
 			divM.appendChild(divG);
 
 			var div = document.createElement("div");
-			div.style.width = 600 +'px';
+			div.style.width = 620 +'px';
 			div.style.height = 300 + 'px';
 			div.id = "barchart1";
 
@@ -126,7 +126,7 @@ function readData(){
 
 
 			var div = document.createElement("div");
-			div.style.width = 600 +'px';
+			div.style.width = 620 +'px';
 			div.style.height = 300 + 'px';
 			div.id = "linechart1";
 						div.style.position = "absolute";
@@ -169,7 +169,7 @@ function readData(){
 	    	myDispatcher.on("selectionChanged", function(){
 				
 			    if(this.callerID === "canvas"){
-			    							line_chart.removeCircle();
+			    	line_chart.removeCircle();
 					line_chart.setDomainRange(this.datafiltered);
 					map.setDomainRange(this.datafiltered);
 					bar_chart.setNewData(this.datafiltered);
@@ -218,7 +218,7 @@ function readData(){
 			var t = document.body.clientWidth; 
 			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 340);
 			novoGannt.dispatcher = myDispatcher;
-			novoGannt.setData(data,configData.nomes);
+			novoGannt.setData(data);
 
 
 

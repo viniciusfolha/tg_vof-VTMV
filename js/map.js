@@ -5,7 +5,8 @@ class MapL{
 		div.style.width = width +'px';
 		div.style.height = height + 'px';
 		div.id = id;
-		
+		this.schemaColor = "schemeRdYlGn";//'schemeReds';
+		//this.schemaColor = "schemeReds";
 		divM.appendChild(div);
 		this.width = width;
 		this.heightCanvas = height;
@@ -107,9 +108,14 @@ class MapL{
 			d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
 			d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
-
-		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-		.domain(this.domainSelected);
+		console.log(this.schemaColor);
+		if(this.schemaColor === "schemeReds")
+			this.colorScale = d3.scaleSequential(d3.interpolateReds)
+				.domain(this.domainSelected);
+		else
+			this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
+				.domain(this.domainSelected);
+			
 
 		
 		this.dataBinding = this.dataContainer.selectAll("custom.linha")
@@ -261,7 +267,6 @@ class MapL{
 		d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
 		d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
-		console.log(this.domainSelected)
 
 		this.colorScale.domain(this.domainSelected);
 		this.featureL = this.newSVG.select("g").selectAll(".lines_group").data(that.selectedIDS);
@@ -295,10 +300,10 @@ class MapL{
 		d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
 		d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
-
+/*
 		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
 		.domain(this.domainSelected);
-
+*/
 
 		this.toLine = d3.line()
 		.curve(d3.curveLinear)
@@ -390,9 +395,19 @@ class MapL{
 		createLegend2(){
 
 			var that = this;
-			var color = d3.scaleQuantize()
-			.domain(this.domainSelected)
-			.range(d3.schemeRdYlGn['8'])
+			console.log(that.schemaColor);
+			if(that.schemaColor === "schemeReds"){
+				var color = d3.scaleQuantize()
+				.domain(this.domainSelected)
+				.range(d3.schemeReds['8']);
+				var grades = d3.schemeReds['8'];
+			}else{
+				var color = d3.scaleQuantize()
+				.domain(this.domainSelected)
+				.range(d3.schemeRdYlGn['8']);
+				var grades = d3.schemeRdYlGn['8'];
+			}
+
 
 			L.Legend = L.Control.extend({
 				'onAdd': function (map) {
@@ -401,8 +416,20 @@ class MapL{
 		        map.legend = this;
 
 		        var div = L.DomUtil.create('div', 'info legend2'),
-		        grades = d3.schemeRdYlGn['8'],
 		        labels = [];
+		        console.log(that.schemaColor);
+			
+		        if(that.schemaColor === "schemeReds"){
+		    		var color = d3.scaleQuantize()
+		    		.domain(that.domainSelected)
+		    		.range(d3.schemeReds['8']);
+		    		var grades = d3.schemeReds['8'];
+		    	}else{
+		    		var color = d3.scaleQuantize()
+		    		.domain(that.domainSelected)
+		    		.range(d3.schemeRdYlGn['8']);
+		    		var grades = d3.schemeRdYlGn['8'];
+		    	}
 
 		        div.id = "legend_id2"
 		        div.innerHTML = '<h4>'+ that.Selected + ':</h4> '
@@ -414,6 +441,18 @@ class MapL{
 		        	'<i style="background:' + grades[i] + '"></i> ' +
 		        	aux[0].toFixed(2) + (aux[1].toFixed(2) ? ' &ndash; ' + aux[1].toFixed(2) + '<br>' : '+');
 		        }
+
+				L.DomEvent.on(div, 'click', function (ev) {
+					if(that.schemaColor === 'schemeReds')
+						that.schemaColor = 'schemeRdYlGn';
+					else
+						that.schemaColor = 'schemeReds';
+
+					that.createLinesCanvas(that.selectedIDS);
+					that.map.legend.setContent();	
+		        	L.DomEvent.stopPropagation(ev);
+		      	});
+
 		        return div;
 		    },
 		    'onRemove': function (map) {
@@ -425,10 +464,19 @@ class MapL{
 
 		    // new method for setting innerHTML
 		    'setContent': function() {
-		    	var grades = d3.schemeRdYlGn['8'];
-		    	var color = d3.scaleQuantize()
-		    	.domain(that.domainSelected)
-		    	.range(d3.schemeRdYlGn['8']);
+		    	console.log(that.schemaColor);
+			
+		    	if(that.schemaColor === "schemeReds"){
+		    		var color = d3.scaleQuantize()
+		    		.domain(that.domainSelected)
+		    		.range(d3.schemeReds['8']);
+		    		var grades = d3.schemeReds['8'];
+		    	}else{
+		    		var color = d3.scaleQuantize()
+		    		.domain(that.domainSelected)
+		    		.range(d3.schemeRdYlGn['8']);
+		    		var grades = d3.schemeRdYlGn['8'];
+		    	}
 
 		    	var divinnerHTML = '<h4>'+ that.Selected + ':</h4> ';
 

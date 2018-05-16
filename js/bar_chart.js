@@ -49,8 +49,8 @@ class BarChart{
 //Create and append select list
   this.selectList = document.createElement("select");
   this.selectList.id = "comboboxBar";
-  this.selectList.style.position = "absolute";
-  this.selectList.style = "position: absolute; top: 10px;right: 0px;";
+ // this.selectList.style.position = "absolute";
+//  this.selectList.style = "position: absolute; top: 10px;right: 0px;";
   this.time;
   this.button =  document.createElement("button", {id: "back-button"});
   
@@ -97,10 +97,19 @@ class BarChart{
     this.SelectedIDS = data;
     //
     var that = this;
-        this.opcoes = opcoes;
-        this.div = document.getElementById(this.id);
+    this.text = document.createTextNode("X-Axis:"); 
+    this.opcoes = opcoes;
+    this.div = document.getElementById(this.id);
+    this.divMenu = document.createElement("div");
+    this.divMenu.classList.toggle('menuclassBar');
+    var h = document.createElement("H4");
+    var t = document.createTextNode("Menu");
+    h.appendChild(t);
+    this.divMenu.appendChild(h);     
+    this.divMenu.appendChild(this.text);
+    this.div.appendChild(this.divMenu);
     
-    this.div.appendChild(this.selectList);
+    this.divMenu.appendChild(this.selectList);
     for (var i = 0; i < this.opcoes.length; i++) {
             var option = document.createElement("option");
             option.value = this.opcoes[i];
@@ -235,10 +244,11 @@ class BarChart{
         this.button =  document.createElement("button", {id: "back-button"});
         this.button.setAttribute('content', 'text content');
         this.button.setAttribute('class', 'btn');
-        this.button.style = "top: 3; right: 0;position:absolute;z-index: 9999; margin-top: 50px;margin-right: 10px;"
+        //this.button.style = "top: 3; right: 0;position:absolute;z-index: 9999; margin-top: 50px;margin-right: 10px;"
         this.button.innerHTML = 'Return';
         this.button.onclick = this.returnB.bind(this);
-        this.div.appendChild(this.button);
+
+        this.divMenu.appendChild(this.button);
         if(this.dispatcher)
           this.dispatcher.apply("selectionChanged",{callerID:that.id, typeOf : "clickOn" ,datafiltered: obj})
 

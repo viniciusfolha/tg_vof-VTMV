@@ -14,7 +14,7 @@ url = 'http://webapibrt.rio.rj.gov.br/api/v1/brt'
 req = urllib2.Request(url)
 while(True):
 	data = json.load(urllib2.urlopen(req))
-	with open('data.txt', 'a') as outfile:
+	with open('./dataOnibus.txt', 'a') as outfile:
 		json.dump(data, outfile)
 		print (time.ctime())
-		time.sleep(15)
+		time.sleep(300)

@@ -9,7 +9,10 @@ class LineChart{
 	    this.width = this.totalWidth - this.margin.left - this.margin.right;
 	    this.height = this.totalHeight - this.margin.top - this.margin.bottom;
 	    this.selectedIDS = [];
-
+	    this.period = "yearly"; 
+	    //this.period = "daily"; 
+	    //this.period = "yearly"; 
+	    this.periods = ["daily", "monthly", "yearly"];
 	    this.canvas = container.append("g")
 	    	.attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
 
@@ -86,20 +89,24 @@ class LineChart{
 	      	; });
 	    this.canvas.call(this.tip);
 
+	    this.selectListPeriod = document.createElement("select");
     	//
     	this.selectedX;
   		this.selectListY = document.createElement("select");
-  		this.selectListY.style.position = "absolute";
+  		//this.selectListY.style.position = "absolute";
 	
-  		this.selectListY.style = "position: absolute; top: 10px;right: 0px;";
+  		//this.selectListY.style = "position: absolute; top: 10px;right: 0px;";
   		this.selectListY.id = "comboboxLine";
 
   		this.selectListX = document.createElement("select");
-  		this.selectListX.style.position = "absolute";
+  		//this.selectListX.style.position = "absolute";
 	
-  		this.selectListX.style = "position: absolute; top: 40px;right: 0px;";
+  		//this.selectListX.style = "position: absolute; top: 40px;right: 0px;";
   		this.selectListX.id = "comboboxLine";
 
+  		 this.text = document.createTextNode("X-Axis:"); 
+
+  		 //this.text.classList
 	}
 
 	zoomFunction(){
@@ -160,13 +167,37 @@ class LineChart{
 	setData(data,opcoes){
 	    this.data = data;
 	    this.opcoes = opcoes;
-
 	    this.selected = this.opcoes[0];
         var that = this;
         var div = document.getElementById(this.id);
-        
-        div.appendChild(this.selectListX);
-        div.appendChild(this.selectListY);
+        var divMenu = document.createElement("div");
+        divMenu.classList.toggle('menuclass');
+        var h = document.createElement("H4");
+	    var t = document.createTextNode("Menu");
+	    h.appendChild(t);
+	    divMenu.appendChild(h);	    
+        divMenu.appendChild(this.text);
+        div.appendChild(divMenu);
+
+        divMenu.appendChild(this.selectListX);
+	    t = document.createTextNode("Axis-Y:");
+	    divMenu.appendChild(t);
+        divMenu.appendChild(this.selectListY);
+
+	    t = document.createTextNode("Period:");
+	    divMenu.appendChild(t);
+	    divMenu.appendChild(this.selectListPeriod);
+	    
+
+	    for (var i = 0; i < this.periods.length; i++) {
+	    	var optionPeriod = document.createElement("option");
+	        optionPeriod.value = this.periods[i];
+	    	optionPeriod.text = this.periods[i];
+	    	this.selectListPeriod.appendChild(optionPeriod);	
+	    }
+	    this.selectListPeriod.selectedIndex = 2;
+	    this.selectListPeriod.onchange = this.changeComboBoxPeriod.bind(that);
+	   
 	    for (var i = 0; i < this.opcoes.length; i++) {
 	        var optionY = document.createElement("option");
 	        optionY.value = this.opcoes[i];
@@ -190,16 +221,28 @@ class LineChart{
 
 	    this.data.forEach(function(d){d.trajetoria.forEach(function(e){
 	    	e.novadata = new Date(e.datahora);
-	    	e.novadata.setYear(2000);
+	    	if(that.period === "yearly")
+	    		e.novadata.setFullYear(2012);
+	    	else if(that.period === "daily")
+	    		e.novadata.setFullYear(2012,0,1);
+	    	else
+	    		e.novadata.setFullYear(2012,0);
 	    })})
 
+	    if(that.period === "yearly")
+	    	this.xScale.domain([new Date(2012,0,1),new Date(2012,11,31)]);
+	    else if(that.period === "daily")
+	    	this.xScale.domain([new Date(2012,0,1),new Date(2012,0,1,23,59)]);
+	    else
+	    	this.xScale.domain([new Date(2012,0,1),new Date(2012,0,31,23,59)]);
 
+/*
 	    this.xScale.domain([
 		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d.novadata }); }),
 		    d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d.novadata }); })
 		]);
 
-	  
+*/	  
 
 	    this.yScale.domain([
 		    d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selected]; }); }),
@@ -208,8 +251,12 @@ class LineChart{
 
 	    this.zScale.domain(this.data.map(function(c) { return c.idObj; }));
 
-
-	    this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%b"));
+	    if(this.period === 'yearly')
+	    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%b"));
+	    else if(this.period === 'daily')
+	    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%H"));
+	    else
+	    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%d"));
 
 	 	var xScale = this.xScale;
 	 	var yScale = this.yScale;
@@ -255,9 +302,79 @@ class LineChart{
 	this.printCircle();
   	}
 
+  	changeComboBoxPeriod(thisCont){
+  		this.period = thisCont.target.value;
+  		var that = this;
+
+  	    this.selectedIDS.forEach(function(d){d.trajetoria.forEach(function(e){
+  	    	e.novadata = new Date(e.datahora);
+  	    	if(that.period === "yearly")
+  	    		e.novadata.setFullYear(2012);
+  	    	else if(that.period === "daily")
+  	    		e.novadata.setFullYear(2012,0,1);
+  	    	else
+  	    		e.novadata.setFullYear(2012,0);
+  	    })});
+
+
+  	    if(this.selectedX === "novadata"){
+  	    	if(that.period === "yearly")
+  	    		this.xScale.domain([new Date(2012,0,1),new Date(2012,11,31)]);
+  	    	else if(that.period === "daily")
+    			this.xScale.domain([new Date(2012,0,1),new Date(2012,0,1,23,59)]);
+    		else
+    			this.xScale.domain([new Date(2012,0,1),new Date(2012,0,31,23,59)]);
+
+	  	 	var xScale = this.xScale;
+	  	 	var yScale = this.yScale;
+			this.toline = d3.line()
+		   		.x(function(d) {  return xScale(d[that.selectedX]); })
+			    .y(function(d) {  return yScale(d[that.selected]); });
+
+
+
+
+	  		if(this.period === 'yearly')
+		    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%b"));
+		    else if(this.period === 'daily')
+		    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%H"));
+		    else
+		    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%d"));
+
+
+
+			//this.do_grid();
+			//d3.selectAll("path").remove();
+			this.myLines = this.canvas.select(".line_chart").selectAll("path").remove();//	data(this.selectedIDS);
+
+			this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
+
+			this.myLines.enter().append("path").attr("d", function(d) { return that.toline(d.trajetoria)})
+			      				.style("stroke", function(d) { return that.zScale (d.idObj); });  
+	  		this.xAxis.scale(this.xScale);
+		    this.xAxisGroup.call(this.xAxis);
+
+		    this.yAxis.scale(this.yScale);
+		    this.yAxisGroup.call(this.yAxis);
+		    
+		}
+	    
+  	}
+
   	changeComboBoxX(thisCont){
   		this.selectedX = thisCont.target.value;
   		var that = this;
+
+  		this.data.forEach(function(d){d.trajetoria.forEach(function(e){
+  			e.novadata = new Date(e.datahora);
+  			if(that.period === "yearly")
+  				e.novadata.setFullYear(2012);
+  			else if(that.period === "daily")
+  				e.novadata.setFullYear(2012,0,1);
+  			else
+  				e.novadata.setFullYear(2012,0);
+  		})});
+
   		if(this.selectedX == "novadata"){
   			this.xScale = d3.scaleTime().rangeRound([0, this.totalWidth]).clamp(true);
 
@@ -298,7 +415,6 @@ class LineChart{
   	}
 
   	update(){
-
 	    var myLines =
 	      this.lines
 	        .selectAll(".line_chart")
@@ -359,6 +475,7 @@ class LineChart{
    
 
   }
+
   reset(){
   	var that = this;
 	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.data);
@@ -368,22 +485,29 @@ class LineChart{
           				.attr("d", function(d) { return that.toline(d.trajetoria)})
 	      				.style("stroke", function(d) { return that.zScale (d.idObj); });              
   }
-  setDomainRange( datafiltered){
 
+  setDomainRange( datafiltered){
   	var that = this;
 	this.selectedIDS = datafiltered;
-	
+
   	this.yScale.domain([
 		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selected]; }); }),
 		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selected]; }); })
 	]);
 
-
-  	this.xScale.domain([
-		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selectedX]; }); }),
-		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selectedX]; }); })
-	]);
-
+  	if(this.selectedX === "novadata"){
+  		if(that.period === "yearly")
+  			this.xScale.domain([new Date(2012,0,1),new Date(2012,11,31)]);
+  		else if(that.period === "daily")
+  			this.xScale.domain([new Date(2012,0,1),new Date(2012,0,2)]);
+  		else
+  			this.xScale.domain([new Date(2012,0,1),new Date(2012,1,1)]);
+  	}else{
+	  	this.xScale.domain([
+			    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selectedX]; }); }),
+			    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selectedX]; }); })
+		]);
+  	}
 
     this.yAxis.scale(this.yScale);
 	this.yAxisGroup.call(this.yAxis);
@@ -438,9 +562,11 @@ class LineChart{
 		      				.style("stroke", function(d) { return that.zScale (d.idObj); });           
 
     }
+
     removeCircle(){
     	this.canvas.select(".circle_click").remove();
     }
+
     printCircle()
     {
     	var that = this;
