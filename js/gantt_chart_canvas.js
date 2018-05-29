@@ -47,83 +47,63 @@ class GanttChartCanvas{
 		this.init = true;
 		this.data;
 		this.selectedData = [];
-
+		this.createMenu();
 	}
 
 
 	setData(data){
-		if(!this.data){
-			this.data = data;
-					this.text = document.createTextNode("Period:"); 
-			        var div = document.getElementById(this.id);
-			        var divMenu = document.createElement("div");
-			        divMenu.classList.toggle('menuclassGantt');
-			        var h = document.createElement("H4");
-				    var t = document.createTextNode("Menu");
-				    h.appendChild(t);
-				    divMenu.appendChild(h);	    
-			        divMenu.appendChild(this.text);
-			        div.appendChild(divMenu);
-			        this.selectListPeriod = document.createElement("select");
-					divMenu.appendChild(this.selectListPeriod);
-			        for (var i = 0; i < this.periods.length; i++) {
-			        	var optionPeriod = document.createElement("option");
-			            optionPeriod.value = this.periods[i];
-			        	optionPeriod.text = this.periods[i];
-			        	this.selectListPeriod.appendChild(optionPeriod);	
-			        }
-			       	this.selectListPeriod.selectedIndex = 2;
-			       	this.selectListPeriod.onchange = this.changeComboBoxPeriod.bind(this);
-			if(this.period === "yearly"){
-				this.dataYear = d3.nest()
-				.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
-				.entries(data);
-				var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
+		this.data = data;
 
-				var dt1 = new Date(auxDateDomain[0])
-				var dt2 = new Date(auxDateDomain[1],11,31);
-				this.xScaleCont.domain([dt1,dt2]);
-				
-				this.yScaleCont.domain([ 0 
-					, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
-			}else if(this.period === "daily"){
-				var that = this;
-				this.dataDay = d3.nest()
-				.key(function(d) { return that.getDateDay(d.trajetoria[0].datahora)})
-				.entries(data);
+		if(this.period === "yearly"){
+			this.dataYear = d3.nest()
+			.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
+			.entries(data);
+			var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
 
-				var dt1 = d3.min(data,function(c) { return c.dateDomain[0]; });
-				var dt2 = d3.max(data,function(c) { return c.dateDomain[1]; });
-				
-				this.xScaleCont.domain([dt1,dt2]);
-				
-				this.yScaleCont.domain([ 0 
-					, d3.max(this.dataDay, function(c) { return c.values.length; }) ]);
-			}else{
-				var that = this;
-				this.dataMonth = d3.nest()
-				.key(function(d) { return that.getDateMonth(d.trajetoria[0].datahora)})
-				.entries(data);
+			var dt1 = new Date(auxDateDomain[0])
+			var dt2 = new Date(auxDateDomain[1],11,31);
+			this.xScaleCont.domain([dt1,dt2]);
+			
+			this.yScaleCont.domain([ 0 
+				, d3.max(this.dataYear, function(c) { return c.values.length; }) ]);
+		}else if(this.period === "daily"){
+			var that = this;
+			this.dataDay = d3.nest()
+			.key(function(d) { return that.getDateDay(d.trajetoria[0].datahora)})
+			.entries(data);
+
+			var dt1 = d3.min(data,function(c) { return c.dateDomain[0]; });
+			var dt2 = d3.max(data,function(c) { return c.dateDomain[1]; });
+			
+			this.xScaleCont.domain([dt1,dt2]);
+			
+			this.yScaleCont.domain([ 0 
+				, d3.max(this.dataDay, function(c) { return c.values.length; }) ]);
+		}else{
+			var that = this;
+			this.dataMonth = d3.nest()
+			.key(function(d) { return that.getDateMonth(d.trajetoria[0].datahora)})
+			.entries(data);
 
 
-				var dt1 = d3.min(data,function(c) { return c.dateDomain[0]; });
-				var dt2 = d3.max(data,function(c) { return c.dateDomain[1]; });
-				
-				this.xScaleCont.domain([new Date(dt1.getFullYear(),0,1),new Date(dt2.getFullYear(),11,31)]);
-				
-				this.yScaleCont.domain([ 0 
-					, d3.max(this.dataMonth, function(c) { return c.values.length; }) ]);
-			}
+			var dt1 = d3.min(data,function(c) { return c.dateDomain[0]; });
+			var dt2 = d3.max(data,function(c) { return c.dateDomain[1]; });
+			
+			this.xScaleCont.domain([new Date(dt1.getFullYear(),0,1),new Date(dt2.getFullYear(),11,31)]);
+			
+			this.yScaleCont.domain([ 0 
+				, d3.max(this.dataMonth, function(c) { return c.values.length; }) ]);
+		}
 
-			this.drawBrushArea();
+		this.drawBrushArea();
 
-    		this.gBrush = this.contextSVG.append("g")
-    		.attr("class", "brush");
+		this.gBrush = this.contextSVG.append("g")
+		.attr("class", "brush");
 
-    		this.newBrush();
-    		this.drawBrushes();
+		this.newBrush();
+		this.drawBrushes();
 
-    	}
+    	
 	}
 
 	update(data){
@@ -216,10 +196,33 @@ class GanttChartCanvas{
 	changeComboBoxPeriod(thisCont){
 		this.period = thisCont.target.value;
 		var that = this;
-
-		this.update(this.filteredData);
+		this.contextSVG.selectAll("*").remove();
+		this.brushes = [];
+		this.setData(this.data);
 	}
 
+	createMenu(){
+		this.text = document.createTextNode("Period:"); 
+	    var div = document.getElementById(this.id);
+	    var divMenu = document.createElement("div");
+	    divMenu.classList.toggle('menuclassGantt');
+	    var h = document.createElement("H4");
+	    var t = document.createTextNode("Menu");
+	    h.appendChild(t);
+	    divMenu.appendChild(h);	    
+	    divMenu.appendChild(this.text);
+	    div.appendChild(divMenu);
+	    this.selectListPeriod = document.createElement("select");
+		divMenu.appendChild(this.selectListPeriod);
+	    for (var i = 0; i < this.periods.length; i++) {
+	    	var optionPeriod = document.createElement("option");
+	        optionPeriod.value = this.periods[i];
+	    	optionPeriod.text = this.periods[i];
+	    	this.selectListPeriod.appendChild(optionPeriod);	
+	    }
+	   	this.selectListPeriod.selectedIndex = 2;
+	   	this.selectListPeriod.onchange = this.changeComboBoxPeriod.bind(this);
+	}
 	newBrush() {
 		var that = this;
 		var brush = d3.brushX()
@@ -562,13 +565,21 @@ class GanttChartCanvas{
 		var smallrect = this.dataContainer.selectAll("custom.smallrect");
 		smallrect.each(function(d) {
 			var node = d3.select(this);
-
 			that.context.beginPath();
 			var t =  d3.color(node.attr("fillStyle"));
 			that.context.fillStyle = t;
 			that.context.rect(node.attr("x"), node.attr("y"), node.attr("width"), node.attr("height"));
+			//that.context.rect(node.attr("x1"), node.attr("y1"), node.attr("width1"), node.attr("height1"));
 			that.context.fill();
 			that.context.closePath();
+			if(node.attr("x1") !== null)
+			{
+				that.context.beginPath();
+				that.context.fillStyle = t;
+				that.context.rect(node.attr("x1"), node.attr("y"), node.attr("width1"), node.attr("height"));
+				that.context.fill();
+				that.context.closePath();
+			}
 
 		});
 	}
@@ -604,10 +615,10 @@ class GanttChartCanvas{
 
   	setHighlight(dataToHigh){
 	  	var that = this;
-	  	var test =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
+	  	var toHigh =  this.dataContainer.selectAll("custom.smallrect").select( function(d) {return dataToHigh.some(e => d === e)?this:null;})
 			.attr("fillStyle", "black");
 
-		test.each(function(d) {
+		toHigh.each(function(d) {
 			var node = d3.select(this);
 
 			that.context.beginPath();
@@ -616,13 +627,16 @@ class GanttChartCanvas{
 			that.context.rect(node.attr("x"), node.attr("y"), node.attr("width"), node.attr("height"));
 			that.context.fill();
 			that.context.closePath();
-
+			if(node.attr("x1") !== null)
+			{
+				debugger;
+				that.context.beginPath();
+				that.context.fillStyle = t;
+				that.context.rect(node.attr("x1"), node.attr("y"), node.attr("width1"), node.attr("height"));
+				that.context.fill();
+				that.context.closePath();
+			}
 		});
-
-		//this.clearCanvas();
-		//this.drawCanvas();
-		//this.drawxAxis();
-		//this.drawyAxis();
   	}
 
   	clearHighlight(dataToHigh){
@@ -639,6 +653,15 @@ class GanttChartCanvas{
 			that.context.fill();
 			that.context.closePath();
 
+			if(node.attr("x1") !== null)
+			{
+				debugger;
+				that.context.beginPath();
+				that.context.fillStyle = t;
+				that.context.rect(node.attr("x1"), node.attr("y"), node.attr("width1"), node.attr("height"));
+				that.context.fill();
+				that.context.closePath();
+			}
 		});
 	
   	}
@@ -724,20 +747,58 @@ class GanttChartCanvas{
 
 			var dtaux = new Date(aux);
 			var dtaux1 = new Date(d.dateDomain[1].getTime());
-			var width = that.xScale(dtaux1.setFullYear(2012,0,1)) - that.xScale(dtaux.setFullYear(2012,0,1))
+			var oneDay = 86400000;
+			if(d.dateDomain[1] - d.dateDomain[0] < oneDay){
+				var width = that.xScale(dtaux1.setFullYear(2012,0,1)) - that.xScale(dtaux.setFullYear(2012,0,1))
 
+				var yAuxInit = that.yScale(day) ;
+				var yAuxEnd = that.yScale(day) + that.heightS;
+				var barHeight = yAuxInit - yAuxEnd;
+				barHeight = barHeight/j.length;
+				var yprint = yAuxInit - barHeight*(i+1);
+				d3.select(j[i])
+				.attr("y", yprint)
+				.attr("height", barHeight)
+				.attr("x", XdateAuxInit)
+				.attr("width", width)
+				.attr("fillStyle", color)
+				.attr("x1", null)
+				.attr("width1", null);
+			}else if(d.dateDomain[1] - d.dateDomain[0] < oneDay*2){
+				var width = that.xScale.range()[1] - that.xScale(dtaux.setFullYear(2012,0,1))
+				var width1 = that.xScale(dtaux1.setFullYear(2012,0,1)) - that.xScale.range()[0];
+				var yAuxInit = that.yScale(day) ;
+				var yAuxEnd = that.yScale(day) + that.heightS;
+				var barHeight = yAuxInit - yAuxEnd;
+				barHeight = barHeight/j.length;
+				var yprint = yAuxInit - barHeight*(i+1);
 
-			var yAuxInit = that.yScale(day) ;
-			var yAuxEnd = that.yScale(day) + that.heightS;
-			var barHeight = yAuxInit - yAuxEnd;
-			barHeight = barHeight/j.length;
-			var yprint = yAuxInit - barHeight*(i+1);
-			d3.select(j[i])
-			.attr("y", yprint)
-			.attr("height", barHeight)
-			.attr("x", XdateAuxInit)
-			.attr("width", width)
-			.attr("fillStyle", color)				
+				d3.select(j[i])
+				.attr("y", yprint)
+				.attr("height", barHeight)
+				.attr("x", XdateAuxInit)
+				.attr("width", width)
+				.attr("fillStyle", color)
+				.attr("x1", that.xScale.range()[0])
+				.attr("width1", width1);
+
+			}else{
+		  		var width = that.xScale.range()[1] - that.xScale.range()[0];
+				var yAuxInit = that.yScale(day) ;
+				var yAuxEnd = that.yScale(day) + that.heightS;
+				var barHeight = yAuxInit - yAuxEnd;
+				barHeight = barHeight/j.length;
+				var yprint = yAuxInit - barHeight*(i+1);
+				
+				d3.select(j[i])
+				.attr("y", yprint)
+				.attr("height", barHeight)
+				.attr("x", that.xScale.range()[0])
+				.attr("width", width)
+				.attr("fillStyle", color)
+				.attr("x1", null)
+				.attr("width1", null);
+			}			
   	}
 
   	GetColorRect(data){
@@ -758,19 +819,57 @@ class GanttChartCanvas{
 
 		  	var dtaux = new Date(aux);
 		  	var dtaux1 = new Date(d.dateDomain[1].getTime());
-		  	var width = that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))
 
-		  	var yAuxInit = that.yScale(year) ;
-		  	var yAuxEnd = that.yScale(year) + that.heightS;
-		  	var barHeight = yAuxInit - yAuxEnd;
-		  	barHeight = barHeight/j.length;
-		  	var yprint = yAuxInit - barHeight*(i+1);
-		  	d3.select(j[i])
-		  	.attr("y", yprint)
-		  	.attr("height", barHeight)
-		  	.attr("x", XdateAuxInit)
-		  	.attr("width", width)
-		  	.attr("fillStyle", color);
+		  	if(d.dateDomain[1].getFullYear() - d.dateDomain[0].getFullYear() == 0){
+		  		var width = that.xScale(dtaux1.setFullYear(2012)) - that.xScale(dtaux.setFullYear(2012))
+
+		  		var yAuxInit = that.yScale(year) ;
+		  		var yAuxEnd = that.yScale(year) + that.heightS;
+		  		var barHeight = yAuxInit - yAuxEnd;
+		  		barHeight = barHeight/j.length;
+		  		var yprint = yAuxInit - barHeight*(i+1);
+		  		d3.select(j[i])
+		  		.attr("y", yprint)
+		  		.attr("height", barHeight)
+		  		.attr("x", XdateAuxInit)
+		  		.attr("width", width)
+		  		.attr("fillStyle", color)
+		  		.attr("x1", null)
+		  		.attr("width1", null);
+		  	}else if(d.dateDomain[1].getFullYear() - d.dateDomain[0].getFullYear() == 1){
+		  		var width = that.xScale.range()[1] - that.xScale(dtaux.setFullYear(2012));
+		  		var yAuxInit = that.yScale(year) ;
+		  		var yAuxEnd = that.yScale(year) + that.heightS;
+		  		var barHeight = yAuxInit - yAuxEnd;
+		  		barHeight = barHeight/j.length;
+		  		var yprint = yAuxInit - barHeight*(i+1);
+
+		  		var width1 = that.xScale(dtaux1.setFullYear(2012)) -  that.xScale.range()[0]
+		  		d3.select(j[i])
+		  		.attr("y", yprint)
+		  		.attr("height", barHeight)
+		  		.attr("x", XdateAuxInit)
+		  		.attr("width", width)
+		  		.attr("fillStyle", color)
+		  		.attr("x1", that.xScale.range()[0])
+		  		.attr("width1", width1);
+
+		  	}else{
+		  		var width = that.xScale.range()[1] - that.xScale.range()[0];
+		  		var yAuxInit = that.yScale(year) ;
+		  		var yAuxEnd = that.yScale(year) + that.heightS;
+		  		var barHeight = yAuxInit - yAuxEnd;
+		  		barHeight = barHeight/j.length;
+		  		var yprint = yAuxInit - barHeight*(i+1);
+		  		d3.select(j[i])
+		  		.attr("y", yprint)
+		  		.attr("height", barHeight)
+		  		.attr("x", that.xScale.range()[0])
+		  		.attr("width", width)
+		  		.attr("fillStyle", color)
+		  		.attr("x1", null)
+		  		.attr("width1", null);
+		  	}
 	}
 
 	bindSmallRectMonth(d,i,j){
@@ -779,23 +878,58 @@ class GanttChartCanvas{
 			var XdateAuxInit= that.xScale(aux.setFullYear(2012,0)); 
 			var month = d.dateDomain[0].getMonth();
 			var color  = that.color(month);
-
 			var dtaux = new Date(aux);
 			var dtaux1 = new Date(d.dateDomain[1].getTime());
-			var width = that.xScale(dtaux1.setFullYear(2012,0)) - that.xScale(dtaux.setFullYear(2012,0))
 
-
-			var yAuxInit = that.yScale(month) ;
-			var yAuxEnd = that.yScale(month) + that.heightS;
-			var barHeight = yAuxInit - yAuxEnd;
-			barHeight = barHeight/j.length;
-			var yprint = yAuxInit - barHeight*(i+1);
-			d3.select(j[i])
-			.attr("y", yprint)
-			.attr("height", barHeight)
-			.attr("x", XdateAuxInit)
-			.attr("width", width)
-			.attr("fillStyle", color)	
+			if(d.dateDomain[1].getMonth() - d.dateDomain[0].getMonth() == 0){
+				var width = that.xScale(dtaux1.setFullYear(2012,0)) - that.xScale(dtaux.setFullYear(2012,0));
+				var yAuxInit = that.yScale(month) ;
+				var yAuxEnd = that.yScale(month) + that.heightS;
+				var barHeight = yAuxInit - yAuxEnd;
+				barHeight = barHeight/j.length;
+				var yprint = yAuxInit - barHeight*(i+1);
+				d3.select(j[i])
+				.attr("y", yprint)
+				.attr("height", barHeight)
+				.attr("x", XdateAuxInit)
+				.attr("width", width)
+				.attr("fillStyle", color)
+				.attr("x1", null)
+		  		.attr("width1", null);
+			}else if(d.dateDomain[1].getMonth() - d.dateDomain[0].getMonth() == 1 || d.dateDomain[1].getMonth() - d.dateDomain[0].getMonth() == -11 ){
+				var width = that.xScale.range()[1] - XdateAuxInit;
+				var yAuxInit = that.yScale(month) ;
+				var yAuxEnd = that.yScale(month) + that.heightS;
+				var barHeight = yAuxInit - yAuxEnd;
+				barHeight = barHeight/j.length;
+				var yprint = yAuxInit - barHeight*(i+1);
+				var width1 = that.xScale(dtaux1.setFullYear(2012,0)) -  that.xScale.range()[0];
+		  		
+				d3.select(j[i])
+				.attr("y", yprint)
+				.attr("height", barHeight)
+				.attr("x", XdateAuxInit)
+				.attr("width", width)
+				.attr("fillStyle", color)
+				.attr("x1", that.xScale.range()[0])
+				.attr("width1", width1);
+		  		
+			}else{
+				var width = that.xScale.range()[1] - that.xScale.range()[0];
+				var yAuxInit = that.yScale(month) ;
+				var yAuxEnd = that.yScale(month) + that.heightS;
+				var barHeight = yAuxInit - yAuxEnd;
+				barHeight = barHeight/j.length;
+				var yprint = yAuxInit - barHeight*(i+1);
+				d3.select(j[i])
+				.attr("y", yprint)
+				.attr("height", barHeight)
+				.attr("x", that.xScale.range()[0])
+				.attr("width", width)
+				.attr("fillStyle", color)
+				.attr("x1", null)
+		  		.attr("width1", null);;
+			}
 	}
 
 

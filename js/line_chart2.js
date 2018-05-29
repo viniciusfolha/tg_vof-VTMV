@@ -122,9 +122,22 @@ class LineChart{
 		  // update circle
 		//this.newLines.attr("transform", d3.event.transform)
 		var that = this;
-		this.toline = d3.line()
-	   		.x(function(d) {  return new_xScale(d.novadata); })
-		    .y(function(d) {  return new_yScale(d[that.selected]); });
+
+		if(this.selectedX === "novadata"){
+			this.toline = d3.line()
+			   		.x(function(d) {  return new_xScale(d.novadata); })
+				    .y(function(d) {  return new_yScale(d[that.selected]); })
+		    	    .defined(function(d,i,j){
+		  
+		    	    	if(i === 0) return true; 
+		    	    	else if(j[i].novadata >= j[i - 1].novadata) return true; 
+		    	    	else return false;
+		    	    });
+	   	}else{
+			this.toline = d3.line()
+		   		.x(function(d) {  return new_xScale(d[that.selectedX]); })
+			    .y(function(d) {  return new_yScale(d[that.selected]); });
+		}
 		this.newLines.attr("d", function(d) { return that.toline(d.trajetoria)})
 	}
 
@@ -261,8 +274,13 @@ class LineChart{
 	 	var xScale = this.xScale;
 	 	var yScale = this.yScale;
 	 	this.toline = d3.line()
-	   		.x(function(d) {  return xScale(d.novadata ); })
-		    .y(function(d) {  return yScale(d[that.selected]); });
+	   		.x(function(d) {  return xScale(d.novadata); })
+		    .y(function(d) {  return yScale(d[that.selected]); })
+		    .defined(function(d,i,j){
+		    	if(i === 0) return true; 
+		    	else if(j[i].novadata >= j[i - 1].novadata) return true; 
+		    	else return false;
+		    });
 
 		this.do_grid();
 	    this.update();
@@ -280,9 +298,22 @@ class LineChart{
   		var that = this;
 		var xScale = this.xScale;
 	 	var yScale = this.yScale;
-	 	this.toline = d3.line()
-	   		.x(function(d) {  return xScale(d.novadata); })
-		    .y(function(d) {  return yScale(d[that.selected]); });
+	 	if(that.selectedX === "novadata"){
+	 		console.log("dsada");
+		 	this.toline = d3.line()
+		   		.x(function(d) {  return xScale(d.novadata ); })
+			    .y(function(d) {  return yScale(d[that.selected]); })
+			    .defined(function(d,i,j){
+			    	if(i === 0) return true; 
+			    	else if(j[i].novadata >= j[i - 1].novadata) return true; 
+			    	else return false;
+			    });
+	 	}else{
+		 	this.toline = d3.line()
+		   		.x(function(d) {  return xScale(d[that.selectedX] ); })
+			    .y(function(d) {  return yScale(d[that.selected]); })
+	 	}
+
 
 		this.xAxis.scale(this.xScale);
 	    this.xAxisGroup.call(this.xAxis);
@@ -327,12 +358,15 @@ class LineChart{
 
 	  	 	var xScale = this.xScale;
 	  	 	var yScale = this.yScale;
-			this.toline = d3.line()
-		   		.x(function(d) {  return xScale(d[that.selectedX]); })
-			    .y(function(d) {  return yScale(d[that.selected]); });
 
-
-
+ 		 	this.toline = d3.line()
+ 		   		.x(function(d) {  return xScale(d.novadata ); })
+ 			    .y(function(d) {  return yScale(d[that.selected]); })
+ 			    .defined(function(d,i,j){
+ 			    	if(i === 0) return true; 
+ 			    	else if(j[i].novadata >= j[i - 1].novadata) return true; 
+ 			    	else return false;
+ 			    });
 
 	  		if(this.period === 'yearly')
 		    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%b"));
@@ -340,7 +374,6 @@ class LineChart{
 		    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%H"));
 		    else
 		    	this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%d"));
-
 
 
 			//this.do_grid();
@@ -356,6 +389,7 @@ class LineChart{
 
 		    this.yAxis.scale(this.yScale);
 		    this.yAxisGroup.call(this.yAxis);
+		    this.printCircle();
 		    
 		}
 	    
@@ -393,9 +427,20 @@ class LineChart{
 		
 		var xScale = this.xScale;
 		var yScale = this.yScale;
-		this.toline = d3.line()
-	   		.x(function(d) {  return xScale(d[that.selectedX]); })
-		    .y(function(d) {  return yScale(d[that.selected]); });
+	 	if(that.selectedX === "novadata"){
+		 	this.toline = d3.line()
+		   		.x(function(d) {  return xScale(d.novadata ); })
+			    .y(function(d) {  return yScale(d[that.selected]); })
+			    .defined(function(d,i,j){
+			    	if(i === 0) return true; 
+			    	else if(j[i].novadata >= j[i - 1].novadata) return true; 
+			    	else return false;
+			    });
+	 	}else{
+		 	this.toline = d3.line()
+		   		.x(function(d) {  return xScale(d[that.selectedX] ); })
+			    .y(function(d) {  return yScale(d[that.selected]); })
+	 	}
   		this.xAxis.scale(this.xScale);
 	    this.xAxisGroup.call(this.xAxis);
 
@@ -502,19 +547,31 @@ class LineChart{
   			this.xScale.domain([new Date(2012,0,1),new Date(2012,0,2)]);
   		else
   			this.xScale.domain([new Date(2012,0,1),new Date(2012,1,1)]);
+
+		this.toline = d3.line()
+		   		.x(function(d) {  return that.xScale(d[that.selectedX]); })
+			    .y(function(d) {  return that.yScale(d[that.selected]); })
+	    	    .defined(function(d,i,j){
+	  
+	    	    	if(i === 0) return true; 
+	    	    	else if(j[i].novadata >= j[i - 1].novadata) return true; 
+	    	    	else return false;
+	    	    });
   	}else{
 	  	this.xScale.domain([
 			    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.selectedX]; }); }),
 			    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.selectedX]; }); })
 		]);
+
+		this.toline = d3.line()
+		   		.x(function(d) {  return that.xScale(d[that.selectedX]); })
+			    .y(function(d) {  return that.yScale(d[that.selected]); });
   	}
 
     this.yAxis.scale(this.yScale);
 	this.yAxisGroup.call(this.yAxis);
 
-	this.toline = d3.line()
-	   		.x(function(d) {  return that.xScale(d[that.selectedX]); })
-		    .y(function(d) {  return that.yScale(d[that.selected]); });
+
 
 	this.myLines = this.canvas.select(".line_chart").selectAll("path").data(this.selectedIDS);
 	this.myLines.exit().remove();
