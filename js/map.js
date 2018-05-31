@@ -155,7 +155,10 @@ class MapL{
 		if(!this.init){
 			this.createLegend2();
 			this.init = true;
+		}else{
+			this.map.legend.setContent();	
 		}
+
 	}
 
 	clearCanvas(){
