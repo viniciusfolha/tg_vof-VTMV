@@ -1,5 +1,7 @@
-var pathData = "data/hurdat2-1851-2016_CONVERTED.json";
-var pathConfig = "data/hur.config";
+
+var pathData = "data/dados.json";
+var pathConfig = "data/configuracao.config";
+
 var configData;
 var datum;
 
@@ -20,10 +22,9 @@ function readData(){
 			if (error) return console.warn(error);
 			datum = data;
 
-
 			//Formating the TIME
 			if(configData.datahora == "default"){
-				var formatT = d3.timeParse ('%Y%m%d-%H%M')
+				var formatT = d3.timeParse('%Y%m%d-%H%M')
 				data.forEach(function(d){
 					configData.nomes.forEach(function(e,i){
 						d["mean_".concat(e)] = 0;
@@ -35,9 +36,7 @@ function readData(){
 													});
 
 								});
-					/*configData.nomes.forEach(function(e,i){
-						d["mean_".concat(e)] = d3.sum(d.trajetoria.map(function(z){return z[e]}) ) / d.trajetoria.length;
-					})*/
+
 					configData.nomes.forEach(function(e,i){
 						d["mean_".concat(e)] /= d.trajetoria.length;
 					})
@@ -51,15 +50,14 @@ function readData(){
 						d["mean_".concat(e)] = 0;
 					})
 					d.trajetoria.forEach(function(e){
+													e.datahora = new Date(e.datahora);
 													e.LatLng = new L.LatLng(e.latitude, e.longitude);
 													configData.nomes.forEach(function(z,i){
 														d["mean_".concat(z)] += e[z] ; 
 													});
 
 								});
-					/*configData.nomes.forEach(function(e,i){
-						d["mean_".concat(e)] = d3.sum(d.trajetoria.map(function(z){return z[e]}) ) / d.trajetoria.length;
-					})*/
+
 					configData.nomes.forEach(function(e,i){
 						d["mean_".concat(e)] /= d.trajetoria.length;
 					})
@@ -70,7 +68,14 @@ function readData(){
 			}
 
 			data = data.filter(function(d){return d.trajetoria[0].datahora.getFullYear() >= 1970});
-			
+			data.sort(function (a, b) {
+				if(a.dateDomain[0]>b.dateDomain[0])
+					return 1;
+				if(a.dateDomain[0]<b.dateDomain[0])
+					return -1;
+
+				return 0
+			});
 			var color  = d3.scaleOrdinal(d3.schemeCategory20b);
 
 
@@ -82,7 +87,7 @@ function readData(){
 			var divMenu = document.createElement("div");
 			divMenu.appendChild(h);
 			divMenu.style.height = 50 + 'px';
-			//divMenu.style.width = 100 +'%';
+
 			divMenu.id = "divMenu";
 			document.body.appendChild(divMenu);
 
@@ -149,23 +154,6 @@ function readData(){
 
 			var myDispatcher = d3.dispatch("selectionChanged");
 
-
-
-
-/*
-			//GANTT
-			var div =  document.createElement("div");
-			div.style.width = 100 +'%';
-			div.id = "ganttchart";
-			document.body.appendChild(div);
-			var t = document.body.clientWidth; 
-			var mySVG3 = d3.select("#ganttchart")
-	    				.append("svg")
-	    				.attr("width",t)
-	    				.attr("height","400");
-	    	var gantt_chart = new GanttChart("ganttchart",mySVG3,0,0,t,300);
-	    	gantt_chart.setData(data,configData.nomes);
-*/
 	    	myDispatcher.on("selectionChanged", function(){
 				
 			    if(this.callerID === "canvas"){
@@ -202,9 +190,7 @@ function readData(){
 					}
 			    }
 
-				
-
-				
+						
 			});
 	    	map.dispatcher - myDispatcher;
 	    	line_chart.dispatcher = myDispatcher;
@@ -219,16 +205,6 @@ function readData(){
 			var novoGannt  = new GanttChartCanvas(div.id, 0,0,t, 340);
 			novoGannt.dispatcher = myDispatcher;
 			novoGannt.setData(data);
-
-
-
-
-
-
-
-
-
-
 
 		})
 		

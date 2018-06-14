@@ -14,7 +14,6 @@ class BarChart{
     this.selectedIDS;
 
     this.canvas = container.append("g").attr("transform","translate(" + (this.x + this.margin.left) + "," + (this.y + this.margin.top) + ")");
-    //this.xScale = d3.scaleBand().rangeRound([0, this.width]).padding(0.2);
     this.xScale = d3.scaleLinear().rangeRound([0, this.width]);
     this.yScale = d3.scaleLinear().rangeRound([this.height,0]);
 
@@ -49,8 +48,6 @@ class BarChart{
 //Create and append select list
   this.selectList = document.createElement("select");
   this.selectList.id = "comboboxBar";
- // this.selectList.style.position = "absolute";
-//  this.selectList.style = "position: absolute; top: 10px;right: 0px;";
   this.time;
   this.button =  document.createElement("button", {id: "back-button"});
   
@@ -210,29 +207,6 @@ class BarChart{
 
   }
   barover(d){
-     /* 
-      var that = this;
-      var group = this.canvas.append("g")
-      .attr("class","tooltip");
-      group.append("rect")
-                .attr('height', 21 + 18*d.length)
-                .attr('width', 100)
-                .attr('x',  this.totalWidth - this.margin.left -2)
-                .attr('y', this.margin.top  )
-                .style('fill', 'LightGray')
-                .attr('stroke', 'black')
-                .style ("opacity",0.7 );
-      group.append("text")
-          .attr("x",this.totalWidth - this.margin.left +3)
-          .attr("y", this.margin.top + 15)
-          .text("ID:");
-      d.forEach(function(x,i){      
-          group.append("text")
-            .attr("x",that.totalWidth - that.margin.left + 10)
-            .attr("y", that.margin.top + (15*(parseInt(i)+2) ) )
-            .style("fontSize", "small")
-              .text(x.idObj);});
-    */
       
   }
   barclick(obj){

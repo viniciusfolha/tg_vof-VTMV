@@ -2,8 +2,7 @@ class GanttChartCanvas{
 	constructor(divId,x,y,width,height){
 	    this.period = "yearly";
 		this.periods = ["daily", "monthly", "yearly"]; 
-	    //this.period = "daily"; 
-	    //this.period = "yearly";
+
 		this.id = divId;
 		this.margin = {top: 10, right: 10, bottom: 25, left: 3};  
 		this.x = x;
@@ -42,7 +41,6 @@ class GanttChartCanvas{
 		this.dataContainer = d3.select(detachedContainer);
 		this.brushes = [];
 		this.xScale = d3.scaleTime().range([50, this.width]).clamp(true);
-		//this.yScale = d3.scaleTime().range([this.heightCanvas + this.margin.top - this.margin.bottom , this.margin.top ]).clamp(true);
 		this.yScale = d3.scaleBand().rangeRound([this.heightCanvas + this.margin.top - this.margin.bottom , this.margin.top ]);
 		this.init = true;
 		this.data;
@@ -59,7 +57,6 @@ class GanttChartCanvas{
 			.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
 			.entries(data);
 			var auxDateDomain = d3.extent(this.dataYear.map(function(d){return d.key}));
-
 			var dt1 = new Date(auxDateDomain[0])
 			var dt2 = new Date(auxDateDomain[1],11,31);
 			this.xScaleCont.domain([dt1,dt2]);
@@ -71,7 +68,6 @@ class GanttChartCanvas{
 			this.dataDay = d3.nest()
 			.key(function(d) { return that.getDateDay(d.trajetoria[0].datahora)})
 			.entries(data);
-
 			var dt1 = d3.min(data,function(c) { return c.dateDomain[0]; });
 			var dt2 = d3.max(data,function(c) { return c.dateDomain[1]; });
 			
@@ -89,7 +85,7 @@ class GanttChartCanvas{
 			var dt1 = d3.min(data,function(c) { return c.dateDomain[0]; });
 			var dt2 = d3.max(data,function(c) { return c.dateDomain[1]; });
 			
-			this.xScaleCont.domain([new Date(dt1.getFullYear(),0,1),new Date(dt2.getFullYear(),11,31)]);
+			this.xScaleCont.domain([new Date(dt1.getFullYear(),dt1.getMonth(),1),new Date(dt2.getFullYear(),dt2.getMonth(),31)]);
 			
 			this.yScaleCont.domain([ 0 
 				, d3.max(this.dataMonth, function(c) { return c.values.length; }) ]);
@@ -132,8 +128,9 @@ class GanttChartCanvas{
     			.data(this.dataYear, function(d) { return d; });
     	}else if(this.period === "daily"){
     		this.dataDay = d3.nest()
-			.key(function(d) { return that.getDateDay(d.trajetoria[0].datahora)})//.sortKeys(function(a,b) { return parseInt(a) - parseInt(b); })
+			.key(function(d) { return that.getDateDay(d.trajetoria[0].datahora)})
 			.entries(data);
+
     		var auxDateDomain = d3.extent(this.dataDay.map(function(d){return d.key}));
 
     		this.xScale.domain([new Date(2012, 0, 1), new Date(2012, 0, 2)]);
@@ -151,14 +148,14 @@ class GanttChartCanvas{
     			return;
     		}
 			this.dataNested = d3.nest()
-				.key(function(d) { return d.trajetoria[0].datahora.getDate()})//.sortKeys(function(a,b) { return parseInt(a) - parseInt(b); })
+				.key(function(d) { return d.trajetoria[0].datahora.getDate()})
 				.entries(data);
 
     		this.dataBinding = this.dataContainer.selectAll("custom.rect")
     			.data(this.dataNested, function(d) { return d; });
     	}else{
     		this.dataMonth = d3.nest()
-			.key(function(d) { return that.getDateMonth(d.trajetoria[0].datahora)})//.sortKeys(function(a,b) { return parseInt(a) - parseInt(b); })
+			.key(function(d) { return that.getDateMonth(d.trajetoria[0].datahora)})
 			.entries(data);
     		var auxDateDomain = d3.extent(this.dataMonth.map(function(d){return d.key}));
 
@@ -383,7 +380,6 @@ class GanttChartCanvas{
 			area.y0(that.yScaleCont(0));
 
 			this.dataDay.unshift({key : that.getDateDay(that.xScaleCont.domain()[0]) , values: [0]} );
-			console.log(this.dataDay);
 			this.contextSVG.append("g")
 			.append("path")
 			.datum(this.dataDay)
@@ -407,12 +403,12 @@ class GanttChartCanvas{
 			var area = d3.area()
 			.defined(function(d) { return d; })
 			.curve(d3.curveStepBefore)
-			.x(function(d) {return that.xScaleCont(new Date (d.key.substring(0,4), d.key.substring(5,7),1 )); })
+			.x(function(d) {return that.xScaleCont(new Date (d.key.substring(0,4), d.key.substring(5,7),30)); })
 			.y1(function(d) { return that.yScaleCont(d.values.length); });
 
 			area.y0(that.yScaleCont(0));
 
-			this.dataMonth.unshift({key : that.getDateMonth(that.xScaleCont.domain()[0]) , values: [0]} );
+			this.dataMonth.unshift({key : that.getPrevDateMonth(that.xScaleCont.domain()[0]) , values: [0]} );
 
 			this.contextSVG.append("g")
 			.append("path")
@@ -453,8 +449,6 @@ class GanttChartCanvas{
 
 			var ticks = this.dateToShow;
 
-		//tickFormat = that.yScale.tickFormat(tickCount);
-		//var tickFormat = that.yScale.tickFormat(5,d3.timeFormat("%B"));
 
 		that.context.beginPath();
 		ticks.forEach(function(d) {
@@ -569,7 +563,6 @@ class GanttChartCanvas{
 			var t =  d3.color(node.attr("fillStyle"));
 			that.context.fillStyle = t;
 			that.context.rect(node.attr("x"), node.attr("y"), node.attr("width"), node.attr("height"));
-			//that.context.rect(node.attr("x1"), node.attr("y1"), node.attr("width1"), node.attr("height1"));
 			that.context.fill();
 			that.context.closePath();
 			if(node.attr("x1") !== null)
@@ -592,19 +585,13 @@ class GanttChartCanvas{
 			var s = d3.event.selection || this.xScaleCont.range();
 
 			this.yScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
-			
-			//this.xScale.domain(s.map(this.xScaleCont.invert, this.xScaleCont));
 
 			that.time = this.yScale.domain();
 			
 
 			var auxDatafilt = this.data.filter(function(d){var val = ( that.time[1] < d.dateDomain[0] || d.dateDomain[1] < that.time[0]   ); 
 				return !val ;});
-/*
-			var datafiltered = d3.nest()
-			.key(function(d) { return d.trajetoria[0].datahora.getFullYear() })
-			.entries(auxDatafilt);
-			*/
+
 			var test = 1;
 			this.update(auxDatafilt);
 			this.dispatcher.apply("selectionChanged",{callerID:that.id,time:that.time, datafiltered: auxDatafilt})
@@ -629,7 +616,7 @@ class GanttChartCanvas{
 			that.context.closePath();
 			if(node.attr("x1") !== null)
 			{
-				debugger;
+
 				that.context.beginPath();
 				that.context.fillStyle = t;
 				that.context.rect(node.attr("x1"), node.attr("y"), node.attr("width1"), node.attr("height"));
@@ -655,7 +642,6 @@ class GanttChartCanvas{
 
 			if(node.attr("x1") !== null)
 			{
-				debugger;
 				that.context.beginPath();
 				that.context.fillStyle = t;
 				that.context.rect(node.attr("x1"), node.attr("y"), node.attr("width1"), node.attr("height"));
@@ -735,6 +721,16 @@ class GanttChartCanvas{
 		if(mm<10){
 		    mm='0'+mm;
 		} 
+  		return date.getFullYear() +"/" + mm;
+  	}
+
+	getPrevDateMonth(date){
+  		var mm = date.getMonth();
+		if(mm<11){
+		    mm='0'+(mm-1);
+		}else if(mm === 0){
+			return date.getFullYear()-1 +"/" + 11;
+		}
   		return date.getFullYear() +"/" + mm;
   	}
 

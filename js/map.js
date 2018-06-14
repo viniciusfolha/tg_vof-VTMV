@@ -11,21 +11,12 @@ class MapL{
 		this.width = width;
 		this.heightCanvas = height;
 		this.color = color;
-
 		this.map = L.map(id).setView([-22.906323, -43.182386], 12);
-		var mapLink =  '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-		L.tileLayer(
-			'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				attribution: '&copy; ' + mapLink + ' Contributors',
-				maxZoom: 18,
-			}).addTo(this.map);
 
-		L.svg().addTo(this.map);	
 		this.svg = d3.select("#map").select("svg");
 		this.g = this.svg.attr("id", "circles_layer");     
 
 
-		L.svg().addTo(this.map);	
 		var aux = d3.select("#map").selectAll("svg");
 		this.newSVG = aux.filter(function (d, i) { return i === 1;})
 		this.gLines = this.newSVG.attr("id", "lines_layer").select("g");
@@ -49,21 +40,25 @@ class MapL{
 	}
 
 	setData(data, configData){
+		var mapLink =  '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+		var link;
+		if(configData.mapColor === 'blackAndWhite')
+			link = 'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png';
+		else
+			link = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+		
+		L.tileLayer(
+			link, {
+				attribution: '&copy; ' + mapLink + ' Contributors',
+				maxZoom: 18,
+			}).addTo(this.map);
+
+		L.svg().addTo(this.map);	
 		this.map.setView([data[0].trajetoria[0].latitude,data[0].trajetoria[0].longitude],5);
 		this.idsObjs = d3.map(data, function(d){return d.idObj;}).keys()
 		this.data = data;
 		this.configData = configData;
 		this.selectedIDS = data;
-
-		
-		/*
-		this.createInfo();
-		this.createLegend();
-		this.createCircle(data);
-		
-		
-		this.createLines()
-		*/
 		
 		// Create an in memory only element of type 'custom'
 		var detachedContainer = document.createElement("custom");
@@ -80,13 +75,8 @@ class MapL{
 		})
 		.context(this.context);
 
-
-		//this.createLinesCanvas(data);
-		
 		var that = this;
 
-
-		//this.map.on("viewreset", this.update.bind(that));
 		this.map.on("moveend", this.update.bind(that));
 		var comboBox = this.createComboBox();
 		comboBox._container.firstChild.addEventListener("change", this.changeComboBox.bind(that));
@@ -108,7 +98,6 @@ class MapL{
 			d3.min(data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
 			d3.max(data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
-		console.log(this.schemaColor);
 		if(this.schemaColor === "schemeReds")
 			this.colorScale = d3.scaleSequential(d3.interpolateReds)
 				.domain(this.domainSelected);
@@ -149,7 +138,6 @@ class MapL{
 
 		this.smallLines.exit().remove();
 		this.clearCanvas();
-		//this.context.clearRect(0, 0, that.width, that.heightCanvas);
 		this.drawCanvas();	
 
 		if(!this.init){
@@ -303,10 +291,6 @@ class MapL{
 		d3.min(this.data, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
 		d3.max(this.data, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
 		];
-/*
-		this.colorScale = d3.scaleSequential(d3.interpolateRdYlGn)
-		.domain(this.domainSelected);
-*/
 
 		this.toLine = d3.line()
 		.curve(d3.curveLinear)
@@ -332,22 +316,8 @@ class MapL{
 	update(cnt) {
 		
 		var that = this;
-			/*
-			this.circleGroup.attr("transform", 
-					     function(d) {
-						 var pt = that.map.latLngToLayerPoint(d.LatLng);
-					return "translate("+ 
-						pt.x +","+ 
-						pt.y +")";
-					}
-				)
-				*/	
-
-				this.createLinesCanvas(this.selectedIDS);
-				
-			//	this.segments.attr("d", that.toLine)
-
-		}
+		this.createLinesCanvas(this.selectedIDS);
+	}
 
 		createLegend(){
 
@@ -398,7 +368,6 @@ class MapL{
 		createLegend2(){
 
 			var that = this;
-			console.log(that.schemaColor);
 			if(that.schemaColor === "schemeReds"){
 				var color = d3.scaleQuantize()
 				.domain(this.domainSelected)
@@ -420,7 +389,6 @@ class MapL{
 
 		        var div = L.DomUtil.create('div', 'info legend2'),
 		        labels = [];
-		        console.log(that.schemaColor);
 			
 		        if(that.schemaColor === "schemeReds"){
 		    		var color = d3.scaleQuantize()
@@ -467,7 +435,6 @@ class MapL{
 
 		    // new method for setting innerHTML
 		    'setContent': function() {
-		    	console.log(that.schemaColor);
 			
 		    	if(that.schemaColor === "schemeReds"){
 		    		var color = d3.scaleQuantize()
@@ -531,28 +498,6 @@ class MapL{
 		
 		this.selectedIDS = datafiltered;
 		this.createLinesCanvas(datafiltered);
-		
-		/*var that = this;
-		this.selectedIDS = datafiltered;
-		//this.featureL.remove();
-		
-		this.domainSelected = [
-		    d3.min(this.selectedIDS, function(c) { return d3.min(c.trajetoria, function(d) { return d[that.Selected]; }); }),
-		    d3.max(this.selectedIDS, function(c) { return d3.max(c.trajetoria, function(d) { return d[that.Selected] }); })
-		];
-
-		this.colorScale.domain(this.domainSelected);
-		this.featureL = this.newSVG.select("g").selectAll(".lines_group").data(datafiltered);
-		this.featureL.exit().remove();
-		let enteredFeatureL = this.featureL.enter().append("g").attr("class", "lines_group");
-
-		this.segments = this.featureL.merge(enteredFeatureL).selectAll("path")
-      				.data(that.createsegments);
-      	this.segments.exit().remove();
-      	let enteredSegments = this.segments.enter().append("path");
-      	this.segments.merge(enteredSegments).attr("d", that.toLine)
-      				.style("stroke", function(d) {return that.colorScale( (d[0][that.Selected] + d[1][that.Selected])/2 ) });
-      				*/
     	this.map.legend.setContent();	
     }
 
