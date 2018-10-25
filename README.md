@@ -31,4 +31,5 @@ A ferramenta é testada em alguns estudos de caso, que possibilitou certificar a
 * [HURDAT2: THE REVISED ATLANTIC HURRICANE DATABASE](https://www.nhc.noaa.gov/) - The National Hurricane Center (NHC) is the division of the United States' National Weather Service responsible for tracking and predicting tropical weather.
 
 ## Docs
+* [Paper] (https://github.com/viniciusfolha/tg_vof-VTMV/tree/master/docs/TG_VOF_2018.pdf) - Final Paper [PT-BR]
 
